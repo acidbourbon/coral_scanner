@@ -314,7 +314,7 @@ int main(void)
 
 // end
   
-  uint8_t loopcounter=0;
+  uint16_t loopcounter=0;
 
   char stringbuffer[16];
 //   for (;;) { // the eternal loop
@@ -337,80 +337,81 @@ int main(void)
 
     
     
-// //######################################################################
-// // uncomment desired demo mode here!
-// 
-// // #define DEMO_MODE KEYPAD_MODE
-// //#define DEMO_MODE ABSOLUTE_MODE
+//######################################################################
+// uncomment desired demo mode here!
+
+// #define DEMO_MODE KEYPAD_MODE
+//#define DEMO_MODE ABSOLUTE_MODE
 // #define DEMO_MODE RELATIVE_MODE
-// //######################################################################
-// 
+//######################################################################
+
 // #if DEMO_MODE == KEYPAD_MODE
-//   // begin of keypad mode demo block
-//   // current configuration is: 3 colums, 2 rows => 6 touch buttons
-//   // this can be changed by the PAD_ROWS/PAD_COLS defines in the TM1001A.c file
-// 
-//   //   -------------------------
-//   //   | back  |  up   | enter |
-//   //   -------------------------
-//   //   | left  |  down | right |
-//   //   -------------------------
-// 
-// //   uart_puts("you selected the keypad demo modus:\n\r");
-//   touchpad_set_abs_mode(); // keypad functionality uses the "absolute mode"
-//   while (1) {
-//     
-//     
-//     Usb2SerialTask();
-//     loopcounter++;
-//     if(loopcounter) {
-//       continue;
-//     }
-// 
-//     touchpad_read(); // read values from the touchpad
-// 
-//     field_val = decode_field(); // decode_field returns the number of the
-//     // touch button that was pressed last. or zero if nothing happened
-// 
-//     switch (field_val) {
-// 
-//     case 4:
-//       uart_puts("left\n\r");
-//       break;
-//     case 6:
-//       uart_puts("right\n\r");
-//       break;
-//     case 2:
-//       uart_puts("up\n\r");
-//       break;
-//     case 5:
-//       uart_puts("down\n\r");
-//       break;
-//     case 1:
-//       uart_puts("back\n\r");
-//       break;
-//     case 3:
-//       uart_puts("enter\n\r");
-//       break;
-//     default:
-//       break;
-//     }
-// 
-//   }
-//   // end of keypad mode demo block
+  // begin of keypad mode demo block
+  // current configuration is: 3 colums, 2 rows => 6 touch buttons
+  // this can be changed by the PAD_ROWS/PAD_COLS defines in the TM1001A.c file
+
+  //   -------------------------
+  //   | back  |  up   | enter |
+  //   -------------------------
+  //   | left  |  down | right |
+  //   -------------------------
+
+//   uart_puts("you selected the keypad demo modus:\n\r");
+  touchpad_set_abs_mode(); // keypad functionality uses the "absolute mode"
+  while (1) {
+    
+    
+    Usb2SerialTask();
+    loopcounter++;
+    if(loopcounter<2000) {
+      continue;
+    }
+  loopcounter=0;
+
+    touchpad_read(); // read values from the touchpad
+
+    field_val = decode_field(); // decode_field returns the number of the
+    // touch button that was pressed last. or zero if nothing happened
+
+    switch (field_val) {
+
+    case 4:
+      uart_puts("left\n\r");
+      break;
+    case 6:
+      uart_puts("right\n\r");
+      break;
+    case 2:
+      uart_puts("up\n\r");
+      break;
+    case 5:
+      uart_puts("down\n\r");
+      break;
+    case 1:
+      uart_puts("back\n\r");
+      break;
+    case 3:
+      uart_puts("enter\n\r");
+      break;
+    default:
+      break;
+    }
+
+  }
+  // end of keypad mode demo block
 // 
 // #elif DEMO_MODE == ABSOLUTE_MODE
   // begin of keypad mode demo block
 //   uart_puts("you selected the absolute position demo modus:\n\r");
-  touchpad_set_abs_mode();// tell the touchpad you want to use it in the "absolute mode"
-  _delay_ms(500);
+/*  touchpad_set_abs_mode();// tell the touchpad you want to use it in the "absolute mode"
   while (1) {
 
     Usb2SerialTask();
     loopcounter++;
-    if(loopcounter) {
+    if(loopcounter< 2000) {
       continue;
     }
+    loopcounter=0;
 
     touchpad_read(); // read data from the touchpad
     uart_puts("x_pos: ");
@@ -425,7 +426,7 @@ int main(void)
     uart_puts("\r");
 
   }
-  // end of absolute mode demo block
+  // end of absolute mode demo block */
 // 
 // #elif DEMO_MODE == RELATIVE_MODE
   // begin of relative mode demo block
@@ -440,9 +441,10 @@ int main(void)
 // 
 //     Usb2SerialTask();
 //     loopcounter++;
-//     if(loopcounter) {
+//     if(loopcounter<2000) {
 //       continue;
 //     }
+//     loopcounter=0;
 // 
 //     touchpad_read(); // read data from touchpad
 // 

@@ -80,7 +80,7 @@ u08 t0ovfcount;
 volatile u08 adb_data_length;
 
 
-ISR( TIMER3_OVF_vect) {
+ISR( TIMER0_OVF_vect) {
 	t0ovfcount++;
 }
 

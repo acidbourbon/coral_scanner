@@ -247,6 +247,7 @@ void touchpad_set_abs_mode(void) {
 	adb_werte[0] = COM_LISTEN1;
 	adb_werte[7] = 0x00; //Absolutmodus
 	adb();
+  _delay_ms(100);
 }
 
 void touchpad_set_rel_mode_100dpi(void) {
@@ -255,6 +256,7 @@ void touchpad_set_rel_mode_100dpi(void) {
 	adb_werte[1] = BITS(0110,0011);
 	adb_werte[2] = 1; //default modus: 100 dpi mouse
 	adb();
+  _delay_ms(100);
 
 }
 
@@ -264,6 +266,7 @@ void touchpad_set_rel_mode_200dpi(void) {
 	adb_werte[1] = BITS(0110,0011);
 	adb_werte[2] = 2; //200 dpi mouse
 	adb();
+  _delay_ms(100);
 
 }
 
