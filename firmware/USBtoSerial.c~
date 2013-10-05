@@ -297,8 +297,8 @@ int main(void)
   GlobalInterruptEnable();
 
   touchpad_init(); // you need to call this to setup the I/O pin!
-  sei();
   _delay_ms(500);
+  sei();
 
 
 // setup rfm70 transceiver
@@ -334,46 +334,41 @@ int main(void)
   
   
   
-//######################################################################
-// uncomment desired demo mode here!
 
-#define DEMO_MODE KEYPAD_MODE
-//#define DEMO_MODE ABSOLUTE_MODE
-//#define DEMO_MODE RELATIVE_MODE
-//######################################################################
-
+    
+    
+// //######################################################################
+// // uncomment desired demo mode here!
+// 
+// // #define DEMO_MODE KEYPAD_MODE
+// //#define DEMO_MODE ABSOLUTE_MODE
+// #define DEMO_MODE RELATIVE_MODE
+// //######################################################################
+// 
 // #if DEMO_MODE == KEYPAD_MODE
-  // begin of keypad mode demo block
-  // current configuration is: 3 colums, 2 rows => 6 touch buttons
-  // this can be changed by the PAD_ROWS/PAD_COLS defines in the TM1001A.c file
-
-  //   -------------------------
-  //   | back  |  up   | enter |
-  //   -------------------------
-  //   | left  |  down | right |
-  //   -------------------------
-
-  uart_puts("you selected the keypad demo modus:\n\r");
-  uint8_t x, y = 0;
-  int8_t dx, dy = 0;
+//   // begin of keypad mode demo block
+//   // current configuration is: 3 colums, 2 rows => 6 touch buttons
+//   // this can be changed by the PAD_ROWS/PAD_COLS defines in the TM1001A.c file
+// 
+//   //   -------------------------
+//   //   | back  |  up   | enter |
+//   //   -------------------------
+//   //   | left  |  down | right |
+//   //   -------------------------
+// 
+// //   uart_puts("you selected the keypad demo modus:\n\r");
 //   touchpad_set_abs_mode(); // keypad functionality uses the "absolute mode"
-  while (1) {
-    Usb2SerialTask();
-    loopcounter++;
-    if(loopcounter) {
-      continue;
-    }
-// //     uart_puts("c");
-//     _delay_ms(20);
-
-    dummy=touchpad_read(); // read values from the touchpad
-    my_uitoa(dummy,stringbuffer,4);// x_abs returns current x position of your finger
-    uart_puts("data_length: ");
-    uart_puts(stringbuffer);
-    uart_puts(" x_pos: ");
-    my_uitoa(delta_x(),stringbuffer,4);// x_abs returns current x position of your finger
-    uart_puts(stringbuffer);
-//     uart_puts("\r");
+//   while (1) {
+//     
+//     
+//     Usb2SerialTask();
+//     loopcounter++;
+//     if(loopcounter) {
+//       continue;
+//     }
+// 
+//     touchpad_read(); // read values from the touchpad
+// 
 //     field_val = decode_field(); // decode_field returns the number of the
 //     // touch button that was pressed last. or zero if nothing happened
 // 
@@ -402,15 +397,19 @@ int main(void)
 //     }
 // 
 //   }
-  // end of keypad mode demo block
-
+//   // end of keypad mode demo block
+// 
 // #elif DEMO_MODE == ABSOLUTE_MODE
-  // begin of keypad mode demo block
-//   uart_puts("you selected the absolute position demo modus:\n\r");
+//   // begin of keypad mode demo block
+// //   uart_puts("you selected the absolute position demo modus:\n\r");
 //   touchpad_set_abs_mode();// tell the touchpad you want to use it in the "absolute mode"
 //   while (1) {
 // 
-//     _delay_ms(20);
+//     Usb2SerialTask();
+//     loopcounter++;
+//     if(loopcounter) {
+//       continue;
+//     }
 // 
 //     touchpad_read(); // read data from the touchpad
 //     uart_puts("x_pos: ");
@@ -427,19 +426,23 @@ int main(void)
 //   }
 //   // end of absolute mode demo block
 // 
-// // #elif DEMO_MODE == RELATIVE_MODE
-//   // begin of relative mode demo block
+// #elif DEMO_MODE == RELATIVE_MODE
+  // begin of relative mode demo block
 //   uart_puts("you selected the relative position demo modus:\n\r");
-//   touchpad_set_rel_mode_100dpi();// use touchpad in relative mode
-// //  touchpad_set_rel_mode_200dpi(); // uncomment this line if you want double resolution
-//   uint8_t x, y = 0;
-//   int8_t dx, dy = 0;
-// 
-//   while (1) {
-// 
-//     _delay_ms(20);
-// 
-//     touchpad_read(); // read data from touchpad
+  touchpad_set_rel_mode_100dpi();// use touchpad in relative mode
+//  touchpad_set_rel_mode_200dpi(); // uncomment this line if you want double resolution
+  uint8_t x, y = 0;
+  int8_t dx, dy = 0;
+
+  while (1) {
+
+    Usb2SerialTask();
+    loopcounter++;
+    if(loopcounter) {
+      continue;
+    }
+
+    touchpad_read(); // read data from touchpad
 
     dx = delta_x();// returns the amount your finger has moved in x direction since last readout
     dy = delta_y();// returns the amount your finger has moved in y direction since last readout
@@ -469,12 +472,14 @@ int main(void)
     uart_puts(stringbuffer);
     uart_puts("\r");
 
-//   }
+  }
   // end of relative mode demo block
 
 // #endif
-
-}
+    
+  
+  
+  
 
 
 } // end of main
