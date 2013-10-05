@@ -400,40 +400,10 @@ int main(void)
 //   // end of keypad mode demo block
 // 
 // #elif DEMO_MODE == ABSOLUTE_MODE
-//   // begin of keypad mode demo block
-// //   uart_puts("you selected the absolute position demo modus:\n\r");
-//   touchpad_set_abs_mode();// tell the touchpad you want to use it in the "absolute mode"
-//   while (1) {
-// 
-//     Usb2SerialTask();
-//     loopcounter++;
-//     if(loopcounter) {
-//       continue;
-//     }
-// 
-//     touchpad_read(); // read data from the touchpad
-//     uart_puts("x_pos: ");
-//     my_uitoa(x_abs(),stringbuffer,4);// x_abs returns current x position of your finger
-//     uart_puts(stringbuffer);
-//     uart_puts("\ty_pos: ");
-//     my_uitoa(y_abs(),stringbuffer,4);// y_abs returns current y position of your finger
-//     uart_puts(stringbuffer);
-//     uart_puts("\tz_pressure: ");// z_pressure returns current "pressure" (contact area) of your finger
-//     my_uitoa(z_pressure(),stringbuffer,4);
-//     uart_puts(stringbuffer);
-//     uart_puts("\r");
-// 
-//   }
-//   // end of absolute mode demo block
-// 
-// #elif DEMO_MODE == RELATIVE_MODE
-  // begin of relative mode demo block
-//   uart_puts("you selected the relative position demo modus:\n\r");
-//   touchpad_set_rel_mode_100dpi();// use touchpad in relative mode
- touchpad_set_rel_mode_200dpi(); // uncomment this line if you want double resolution
-  uint8_t x, y = 0;
-  int8_t dx, dy = 0;
-
+  // begin of keypad mode demo block
+//   uart_puts("you selected the absolute position demo modus:\n\r");
+  touchpad_set_abs_mode();// tell the touchpad you want to use it in the "absolute mode"
+  _delay_ms(500);
   while (1) {
 
     Usb2SerialTask();
@@ -442,37 +412,69 @@ int main(void)
       continue;
     }
 
-    touchpad_read(); // read data from touchpad
-
-    dx = delta_x();// returns the amount your finger has moved in x direction since last readout
-    dy = delta_y();// returns the amount your finger has moved in y direction since last readout
-
-    // increment/decrement some dummy variables with the
-    if (x + dx > 255) {
-      x = 255;
-    } else if (x + dx < 0) {
-      x = 0;
-    } else {
-      x = (x + dx);
-    }
-
-    if (y + dy > 255) {
-      y = 255;
-    } else if (y + dy < 0) {
-      y = 0;
-    } else {
-      y = (y + dy);
-    }
-
+    touchpad_read(); // read data from the touchpad
     uart_puts("x_pos: ");
-    my_uitoa(x, stringbuffer, 4);
+    my_uitoa(x_abs(),stringbuffer,4);// x_abs returns current x position of your finger
     uart_puts(stringbuffer);
-    uart_puts("\ty_pos: ");
-    my_uitoa(y, stringbuffer, 4);
+    uart_puts("   y_pos: ");
+    my_uitoa(y_abs(),stringbuffer,4);// y_abs returns current y position of your finger
+    uart_puts(stringbuffer);
+    uart_puts("   z_pressure: ");// z_pressure returns current "pressure" (contact area) of your finger
+    my_uitoa(z_pressure(),stringbuffer,4);
     uart_puts(stringbuffer);
     uart_puts("\r");
 
   }
+  // end of absolute mode demo block
+// 
+// #elif DEMO_MODE == RELATIVE_MODE
+  // begin of relative mode demo block
+//   uart_puts("you selected the relative position demo modus:\n\r");
+//   touchpad_set_rel_mode_100dpi();// use touchpad in relative mode
+//  touchpad_set_rel_mode_200dpi(); // uncomment this line if you want double resolution
+//   touchpad_set_abs_mode();
+//   uint8_t x, y = 0;
+//   int8_t dx, dy = 0;
+// 
+//   while (1) {
+// 
+//     Usb2SerialTask();
+//     loopcounter++;
+//     if(loopcounter) {
+//       continue;
+//     }
+// 
+//     touchpad_read(); // read data from touchpad
+// 
+//     dx = delta_x();// returns the amount your finger has moved in x direction since last readout
+//     dy = delta_y();// returns the amount your finger has moved in y direction since last readout
+// 
+//     // increment/decrement some dummy variables with the
+//     if (x + dx > 255) {
+//       x = 255;
+//     } else if (x + dx < 0) {
+//       x = 0;
+//     } else {
+//       x = (x + dx);
+//     }
+// 
+//     if (y + dy > 255) {
+//       y = 255;
+//     } else if (y + dy < 0) {
+//       y = 0;
+//     } else {
+//       y = (y + dy);
+//     }
+// 
+//     uart_puts("x_pos: ");
+//     my_uitoa(x, stringbuffer, 4);
+//     uart_puts(stringbuffer);
+//     uart_puts("  y_pos: ");
+//     my_uitoa(y, stringbuffer, 4);
+//     uart_puts(stringbuffer);
+//     uart_puts("\r");
+// 
+//   }
   // end of relative mode demo block
 
 // #endif
