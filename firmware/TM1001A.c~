@@ -16,9 +16,9 @@
 // define here the port and the pin where you cave connected
 // the ADB (I/O) line from your TM1001A touchpad
 #define ADB_BIT (1<<0)
-#define ADB_PIN PIND
-#define ADB_POUT PORTD
-#define ADB_PDIR DDRD
+#define ADB_PIN PINB
+#define ADB_POUT PORTB
+#define ADB_PDIR DDRB
 
 // when touchpad is in keypad mode the next two defines set the number
 // of rows and columns of the
@@ -247,6 +247,7 @@ void touchpad_set_abs_mode(void) {
 	adb_werte[0] = COM_LISTEN1;
 	adb_werte[7] = 0x00; //Absolutmodus
 	adb();
+  _delay_ms(100);
 }
 
 void touchpad_set_rel_mode_100dpi(void) {
@@ -255,6 +256,7 @@ void touchpad_set_rel_mode_100dpi(void) {
 	adb_werte[1] = BITS(0110,0011);
 	adb_werte[2] = 1; //default modus: 100 dpi mouse
 	adb();
+  _delay_ms(100);
 
 }
 
@@ -264,6 +266,7 @@ void touchpad_set_rel_mode_200dpi(void) {
 	adb_werte[1] = BITS(0110,0011);
 	adb_werte[2] = 2; //200 dpi mouse
 	adb();
+  _delay_ms(100);
 
 }
 

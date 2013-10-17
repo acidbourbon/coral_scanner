@@ -98,7 +98,7 @@ USBtoSerial.o: USBtoSerial.c USBtoSerial.h Descriptors.h \
  ../../LUFA/../LUFA/Drivers/Peripheral/AVR8/../../../Common/Common.h \
  ../../LUFA/../LUFA/Drivers/Peripheral/AVR8/../../Misc/TerminalCodes.h \
  ../../LUFA/../LUFA/Drivers/Misc/RingBuffer.h \
- ../../LUFA/../LUFA/Drivers/Misc/../../Common/Common.h TM1001A.c
+ ../../LUFA/../LUFA/Drivers/Misc/../../Common/Common.h TM1001A.c pins.h
 
 USBtoSerial.h:
 
@@ -305,3 +305,5 @@ Config/LUFAConfig.h:
 ../../LUFA/../LUFA/Drivers/Misc/../../Common/Common.h:
 
 TM1001A.c:
+
+pins.h:
