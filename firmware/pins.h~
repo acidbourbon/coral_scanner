@@ -28,7 +28,7 @@
 #define Y1 6
 #define DDRY1 DDRB
 #define PORTY1 PORTB
-#define PINY1 PINC
+#define PINY1 PINB
 
 #define Y2 7
 #define DDRY2 DDRC
@@ -39,4 +39,7 @@
 #define DDRY3 DDRC
 #define PORTY3 PORTC
 #define PINY3 PINC
+
+#define X 0
+#define Y 1
 
