@@ -270,13 +270,13 @@ void uart_puts(const char *s )
 
 
 // convert an unsigned integer to string
-void my_uitoa(uint32_t zahl, char* string, uint8_t no_digits) {
+void my_uitoa(uint32_t zahl, char* string, uint8_t no_digits, char leading_char) {
   int8_t i; // schleifenzähler
 
   string[no_digits] = '\0'; // String Terminator
   for (i = (no_digits - 1); i >= 0; i--) {
     if (zahl == 0 && i < (no_digits - 1)) {
-      string[i] = ' ';
+      string[i] = leading_char;
     } else {
       string[i] = (zahl % 10) + '0';
     } // Modulo rechnen, dann den ASCII-Code von '0' addieren
@@ -291,12 +291,18 @@ int8_t sign(int16_t x) {
 
 
 void uart_print_number(uint32_t zahl, uint8_t no_digits) {
-  my_uitoa(abs(zahl),stringbuffer,no_digits);
+  my_uitoa(abs(zahl),stringbuffer,no_digits,' ');
   uart_puts(stringbuffer);
-  
 }
+
+
+void uart_print_number_wlzeros(uint32_t zahl, uint8_t no_digits) {
+  my_uitoa(abs(zahl),stringbuffer,no_digits,'0');
+  uart_puts(stringbuffer);
+}
+
 void uart_print_signed_number(uint32_t zahl, uint8_t no_digits) {
-  my_uitoa(abs(zahl),stringbuffer,no_digits);
+  my_uitoa(abs(zahl),stringbuffer,no_digits,' ');
   if (sign(zahl) < 0) {
     uart_putc('-');
   } else {
@@ -423,13 +429,26 @@ uint8_t move_plate(int16_t dx, int16_t dy){
 }
   
   
+void print_steps_in_mm(int16_t steps) {
+  int16_t predot,postdot;
+  
+  predot = steps/24;
+  postdot = ((abs(steps)%24)*417)/10;
+  uart_print_signed_number(predot,3);
+  uart_putc('.');
+  uart_print_number_wlzeros(postdot,3);
+  
+}
+  
 void pos_report(void){ 
     uart_puts("x_pos: ");
-    uart_print_signed_number(plate_pos_x,6);
+//     uart_print_signed_number(plate_pos_x,6);
+    print_steps_in_mm(plate_pos_x);
 //     my_uitoa(plate_pos_x, stringbuffer, 6);
 //     uart_puts(stringbuffer);
     uart_puts("  y_pos: ");
-    uart_print_signed_number(plate_pos_y,6);
+//     uart_print_signed_number(plate_pos_y,6);
+    print_steps_in_mm(plate_pos_y);
     uart_puts("\r");
 }
 
@@ -441,7 +460,7 @@ void pos_report(void){
 void parse_command(void){
   
   
-  static char cmdbuffer[16];
+  static char cmdbuffer[32];
   static char numbuffer[16];
   static uint16_t predot = 0,postdot = 0;
   static uint8_t cmdPos, curCmdLen, num_start = 0, nums_found = 0;
@@ -528,15 +547,16 @@ void parse_command(void){
         case GOTO:
           uart_puts("GOTO ");
           uart_putc(88+axis);// x or y
+          uart_putc(' ');
           uart_print_signed_number(predot*num_sign,3);
           uart_putc('.');
-          uart_print_number(postdot,3);
+          uart_print_number_wlzeros(postdot,3);
           uart_puts("\r\n"); 
           
           dest = num_sign *( predot*24 +(postdot*10)/416);
           
           if (axis == X) {
-            steps = dest - plate_pos_x;
+            steps = dest - plate_pos_x; // experimental correction!
             move_plate(steps,0);
             plate_pos_x += steps;
           } else if (axis == Y) {
@@ -544,14 +564,16 @@ void parse_command(void){
             move_plate(0,steps);
             plate_pos_y += steps;
           }
+          pos_report();
           
           break;
         case MOVEREL:
           uart_puts("MOVE ");
           uart_putc(88+axis);// x or y
+          uart_putc(' ');
           uart_print_signed_number(predot*num_sign,3);
           uart_putc('.');
-          uart_print_number(postdot,3);
+          uart_print_number_wlzeros(postdot,3);
           uart_puts("\r\n"); 
           
           steps = num_sign *( predot*24 +(postdot*10)/416);
@@ -563,6 +585,7 @@ void parse_command(void){
             move_plate(0,steps);
             plate_pos_y += steps;
           }
+          pos_report();
           break;
           
         case SETZERO:
@@ -580,8 +603,18 @@ void parse_command(void){
       
       
     } else { // queue command
-      cmdbuffer[cmdPos++] = byte;
+      if( cmdPos == 0 ){
+        uart_puts("\r\n$ ");
+      }
+      
+      if( byte == 8 ){ // backspace
+        cmdPos--;
+      } else {
+        cmdbuffer[cmdPos++] = byte;
+      }
       uart_putc(byte);
+      
+
     }
   }
 }
@@ -614,7 +647,7 @@ int main(void)
 
 
 
-  uart_puts("you selected the relative position demo modus:\n\r");
+//   uart_puts("you selected the relative position demo modus:\n\r");
   touchpad_set_rel_mode_100dpi();// use touchpad in relative mode
 //  touchpad_set_rel_mode_200dpi(); // uncomment this line if you want double resolution
   int16_t x, y = 0;
