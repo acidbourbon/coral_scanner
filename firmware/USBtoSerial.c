@@ -401,7 +401,7 @@ uint32_t times_ten_pow(uint8_t exponent) {
   return val;
 }
 
-
+#define PHASE_DELAY_MS 10
 
 uint8_t move_plate(int16_t dx, int16_t dy){
   static int16_t todo_x,todo_y = 0;
@@ -423,6 +423,7 @@ uint8_t move_plate(int16_t dx, int16_t dy){
   }
   motor_step(Y,signum);
   todo_y -= signum;
+  _delay_ms(PHASE_DELAY_MS);
   
   return returnval; // busy
   
@@ -665,8 +666,8 @@ int main(void)
     parse_command(); // read data from virtual comport
     touchpad_read(); // read data from touchpad
 
-    dx = delta_x();// returns the amount your finger has moved in x direction since last readout
-    dy = delta_y();// returns the amount your finger has moved in y direction since last readout
+    dx = -delta_x();// returns the amount your finger has moved in x direction since last readout
+    dy = -delta_y();// returns the amount your finger has moved in y direction since last readout
 
     // increment/decrement some dummy variables with the
 
@@ -682,7 +683,6 @@ int main(void)
       pos_report();
     }
     
-    _delay_ms(20);
 
   }
   // end of relative mode demo block

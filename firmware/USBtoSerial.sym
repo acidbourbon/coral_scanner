@@ -275,10 +275,10 @@
 0000094c T init_motors
 00000966 T motor_step
 000009ca T move_plate
-00000a60 T print_steps_in_mm
-00000ab4 T pos_report
-00000ada T parse_command
-00000e38 T main
+00000a6c T print_steps_in_mm
+00000ac0 T pos_report
+00000ae6 T parse_command
+00000e44 T main
 00000ee6 T CALLBACK_USB_GetDescriptor
 00000f40 T Endpoint_Write_Control_Stream_LE
 00000ff4 T Endpoint_Write_Control_PStream_LE

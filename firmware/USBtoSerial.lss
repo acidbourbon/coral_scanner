@@ -17,21 +17,21 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   6 .debug_pubnames 00000f39  00000000  00000000  00004fad  2**0
                   CONTENTS, READONLY, DEBUGGING
-  7 .debug_info   000092a5  00000000  00000000  00005ee6  2**0
+  7 .debug_info   000092a1  00000000  00000000  00005ee6  2**0
                   CONTENTS, READONLY, DEBUGGING
-  8 .debug_abbrev 0000220b  00000000  00000000  0000f18b  2**0
+  8 .debug_abbrev 0000220b  00000000  00000000  0000f187  2**0
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_line   00007bdc  00000000  00000000  00011396  2**0
+  9 .debug_line   00007bee  00000000  00000000  00011392  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_frame  00000900  00000000  00000000  00018f74  2**2
+ 10 .debug_frame  00000900  00000000  00000000  00018f80  2**2
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_str    00003d96  00000000  00000000  00019874  2**0
+ 11 .debug_str    00003d74  00000000  00000000  00019880  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_loc    00004b07  00000000  00000000  0001d60a  2**0
+ 12 .debug_loc    00004b3c  00000000  00000000  0001d5f4  2**0
                   CONTENTS, READONLY, DEBUGGING
- 13 .debug_pubtypes 00001111  00000000  00000000  00022111  2**0
+ 13 .debug_pubtypes 00001111  00000000  00000000  00022130  2**0
                   CONTENTS, READONLY, DEBUGGING
- 14 .debug_ranges 00000828  00000000  00000000  00023222  2**0
+ 14 .debug_ranges 00000828  00000000  00000000  00023241  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -180,7 +180,7 @@ Disassembly of section .text:
      162:	a4 3d       	cpi	r26, 0xD4	; 212
      164:	b1 07       	cpc	r27, r17
      166:	e1 f7       	brne	.-8      	; 0x160 <.do_clear_bss_loop>
-     168:	67 d6       	rcall	.+3278   	; 0xe38 <main>
+     168:	6d d6       	rcall	.+3290   	; 0xe44 <main>
      16a:	0c 94 7a 0f 	jmp	0x1ef4	; 0x1ef4 <_exit>
 
 0000016e <__bad_interrupt>:
@@ -2015,7 +2015,7 @@ uint8_t motor_step(uint8_t motor, int8_t direction) { // motor: M1 or M2, direct
   return val;
 }
 
-
+#define PHASE_DELAY_MS 10
 
 uint8_t move_plate(int16_t dx, int16_t dy){
      9ca:	0f 93       	push	r16
@@ -2042,7 +2042,7 @@ uint8_t move_plate(int16_t dx, int16_t dy){
      9f6:	c9 01       	movw	r24, r18
      9f8:	66 df       	rcall	.-308    	; 0x8c6 <sign>
      9fa:	08 2f       	mov	r16, r24
-
+#define PHASE_DELAY_MS 10
 
 uint8_t move_plate(int16_t dx, int16_t dy){
   static int16_t todo_x,todo_y = 0;
@@ -2098,852 +2098,872 @@ uint8_t move_plate(int16_t dx, int16_t dy){
      a4e:	37 0b       	sbc	r19, r23
      a50:	30 93 a3 02 	sts	0x02A3, r19
      a54:	20 93 a2 02 	sts	0x02A2, r18
+     a58:	8f e3       	ldi	r24, 0x3F	; 63
+     a5a:	9c e9       	ldi	r25, 0x9C	; 156
+     a5c:	01 97       	sbiw	r24, 0x01	; 1
+     a5e:	f1 f7       	brne	.-4      	; 0xa5c <move_plate+0x92>
+     a60:	00 c0       	rjmp	.+0      	; 0xa62 <move_plate+0x98>
+     a62:	00 00       	nop
+  _delay_ms(PHASE_DELAY_MS);
   
   return returnval; // busy
   
 }
-     a58:	81 2f       	mov	r24, r17
-     a5a:	1f 91       	pop	r17
-     a5c:	0f 91       	pop	r16
-     a5e:	08 95       	ret
+     a64:	81 2f       	mov	r24, r17
+     a66:	1f 91       	pop	r17
+     a68:	0f 91       	pop	r16
+     a6a:	08 95       	ret
 
-00000a60 <print_steps_in_mm>:
+00000a6c <print_steps_in_mm>:
   
   
 void print_steps_in_mm(int16_t steps) {
-     a60:	0f 93       	push	r16
-     a62:	1f 93       	push	r17
-     a64:	8c 01       	movw	r16, r24
+     a6c:	0f 93       	push	r16
+     a6e:	1f 93       	push	r17
+     a70:	8c 01       	movw	r16, r24
   int16_t predot,postdot;
   
   predot = steps/24;
-     a66:	68 e1       	ldi	r22, 0x18	; 24
-     a68:	70 e0       	ldi	r23, 0x00	; 0
-     a6a:	0e 94 0f 0f 	call	0x1e1e	; 0x1e1e <__divmodhi4>
+     a72:	68 e1       	ldi	r22, 0x18	; 24
+     a74:	70 e0       	ldi	r23, 0x00	; 0
+     a76:	0e 94 0f 0f 	call	0x1e1e	; 0x1e1e <__divmodhi4>
   postdot = ((abs(steps)%24)*417)/10;
   uart_print_signed_number(predot,3);
-     a6e:	88 27       	eor	r24, r24
-     a70:	77 fd       	sbrc	r23, 7
-     a72:	80 95       	com	r24
-     a74:	98 2f       	mov	r25, r24
-     a76:	43 e0       	ldi	r20, 0x03	; 3
-     a78:	46 df       	rcall	.-372    	; 0x906 <uart_print_signed_number>
+     a7a:	88 27       	eor	r24, r24
+     a7c:	77 fd       	sbrc	r23, 7
+     a7e:	80 95       	com	r24
+     a80:	98 2f       	mov	r25, r24
+     a82:	43 e0       	ldi	r20, 0x03	; 3
+     a84:	40 df       	rcall	.-384    	; 0x906 <uart_print_signed_number>
   uart_putc('.');
-     a7a:	8e e2       	ldi	r24, 0x2E	; 46
-     a7c:	a3 de       	rcall	.-698    	; 0x7c4 <uart_putc>
+     a86:	8e e2       	ldi	r24, 0x2E	; 46
+     a88:	9d de       	rcall	.-710    	; 0x7c4 <uart_putc>
   
 void print_steps_in_mm(int16_t steps) {
   int16_t predot,postdot;
   
   predot = steps/24;
   postdot = ((abs(steps)%24)*417)/10;
-     a7e:	c8 01       	movw	r24, r16
-     a80:	17 ff       	sbrs	r17, 7
-     a82:	03 c0       	rjmp	.+6      	; 0xa8a <print_steps_in_mm+0x2a>
-     a84:	90 95       	com	r25
-     a86:	81 95       	neg	r24
-     a88:	9f 4f       	sbci	r25, 0xFF	; 255
-     a8a:	68 e1       	ldi	r22, 0x18	; 24
-     a8c:	70 e0       	ldi	r23, 0x00	; 0
-     a8e:	0e 94 0f 0f 	call	0x1e1e	; 0x1e1e <__divmodhi4>
-     a92:	61 ea       	ldi	r22, 0xA1	; 161
-     a94:	71 e0       	ldi	r23, 0x01	; 1
-     a96:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
-     a9a:	6a e0       	ldi	r22, 0x0A	; 10
-     a9c:	70 e0       	ldi	r23, 0x00	; 0
-     a9e:	0e 94 0f 0f 	call	0x1e1e	; 0x1e1e <__divmodhi4>
+     a8a:	c8 01       	movw	r24, r16
+     a8c:	17 ff       	sbrs	r17, 7
+     a8e:	03 c0       	rjmp	.+6      	; 0xa96 <print_steps_in_mm+0x2a>
+     a90:	90 95       	com	r25
+     a92:	81 95       	neg	r24
+     a94:	9f 4f       	sbci	r25, 0xFF	; 255
+     a96:	68 e1       	ldi	r22, 0x18	; 24
+     a98:	70 e0       	ldi	r23, 0x00	; 0
+     a9a:	0e 94 0f 0f 	call	0x1e1e	; 0x1e1e <__divmodhi4>
+     a9e:	61 ea       	ldi	r22, 0xA1	; 161
+     aa0:	71 e0       	ldi	r23, 0x01	; 1
+     aa2:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
+     aa6:	6a e0       	ldi	r22, 0x0A	; 10
+     aa8:	70 e0       	ldi	r23, 0x00	; 0
+     aaa:	0e 94 0f 0f 	call	0x1e1e	; 0x1e1e <__divmodhi4>
   uart_print_signed_number(predot,3);
   uart_putc('.');
   uart_print_number_wlzeros(postdot,3);
-     aa2:	88 27       	eor	r24, r24
-     aa4:	77 fd       	sbrc	r23, 7
-     aa6:	80 95       	com	r24
-     aa8:	98 2f       	mov	r25, r24
-     aaa:	43 e0       	ldi	r20, 0x03	; 3
-     aac:	18 df       	rcall	.-464    	; 0x8de <uart_print_number_wlzeros>
+     aae:	88 27       	eor	r24, r24
+     ab0:	77 fd       	sbrc	r23, 7
+     ab2:	80 95       	com	r24
+     ab4:	98 2f       	mov	r25, r24
+     ab6:	43 e0       	ldi	r20, 0x03	; 3
+     ab8:	12 df       	rcall	.-476    	; 0x8de <uart_print_number_wlzeros>
   
 }
-     aae:	1f 91       	pop	r17
-     ab0:	0f 91       	pop	r16
-     ab2:	08 95       	ret
+     aba:	1f 91       	pop	r17
+     abc:	0f 91       	pop	r16
+     abe:	08 95       	ret
 
-00000ab4 <pos_report>:
+00000ac0 <pos_report>:
   
 void pos_report(void){ 
     uart_puts("x_pos: ");
-     ab4:	80 e0       	ldi	r24, 0x00	; 0
-     ab6:	91 e0       	ldi	r25, 0x01	; 1
-     ab8:	8d de       	rcall	.-742    	; 0x7d4 <uart_puts>
+     ac0:	80 e0       	ldi	r24, 0x00	; 0
+     ac2:	91 e0       	ldi	r25, 0x01	; 1
+     ac4:	87 de       	rcall	.-754    	; 0x7d4 <uart_puts>
 //     uart_print_signed_number(plate_pos_x,6);
     print_steps_in_mm(plate_pos_x);
-     aba:	80 91 4e 01 	lds	r24, 0x014E
-     abe:	90 91 4f 01 	lds	r25, 0x014F
-     ac2:	ce df       	rcall	.-100    	; 0xa60 <print_steps_in_mm>
+     ac6:	80 91 4e 01 	lds	r24, 0x014E
+     aca:	90 91 4f 01 	lds	r25, 0x014F
+     ace:	ce df       	rcall	.-100    	; 0xa6c <print_steps_in_mm>
 //     my_uitoa(plate_pos_x, stringbuffer, 6);
 //     uart_puts(stringbuffer);
     uart_puts("  y_pos: ");
-     ac4:	88 e0       	ldi	r24, 0x08	; 8
-     ac6:	91 e0       	ldi	r25, 0x01	; 1
-     ac8:	85 de       	rcall	.-758    	; 0x7d4 <uart_puts>
+     ad0:	88 e0       	ldi	r24, 0x08	; 8
+     ad2:	91 e0       	ldi	r25, 0x01	; 1
+     ad4:	7f de       	rcall	.-770    	; 0x7d4 <uart_puts>
 //     uart_print_signed_number(plate_pos_y,6);
     print_steps_in_mm(plate_pos_y);
-     aca:	80 91 50 01 	lds	r24, 0x0150
-     ace:	90 91 51 01 	lds	r25, 0x0151
-     ad2:	c6 df       	rcall	.-116    	; 0xa60 <print_steps_in_mm>
+     ad6:	80 91 50 01 	lds	r24, 0x0150
+     ada:	90 91 51 01 	lds	r25, 0x0151
+     ade:	c6 df       	rcall	.-116    	; 0xa6c <print_steps_in_mm>
     uart_puts("\r");
-     ad4:	82 e1       	ldi	r24, 0x12	; 18
-     ad6:	91 e0       	ldi	r25, 0x01	; 1
+     ae0:	82 e1       	ldi	r24, 0x12	; 18
+     ae2:	91 e0       	ldi	r25, 0x01	; 1
 }
-     ad8:	7d ce       	rjmp	.-774    	; 0x7d4 <uart_puts>
+     ae4:	77 ce       	rjmp	.-786    	; 0x7d4 <uart_puts>
 
-00000ada <parse_command>:
+00000ae6 <parse_command>:
 #define POSITION 0
 #define GOTO 1
 #define MOVEREL 2
 #define SETZERO 3
 
 void parse_command(void){
-     ada:	cf 92       	push	r12
-     adc:	df 92       	push	r13
-     ade:	ef 92       	push	r14
-     ae0:	ff 92       	push	r15
-     ae2:	0f 93       	push	r16
-     ae4:	1f 93       	push	r17
-     ae6:	cf 93       	push	r28
-     ae8:	df 93       	push	r29
+     ae6:	cf 92       	push	r12
+     ae8:	df 92       	push	r13
+     aea:	ef 92       	push	r14
+     aec:	ff 92       	push	r15
+     aee:	0f 93       	push	r16
+     af0:	1f 93       	push	r17
+     af2:	cf 93       	push	r28
+     af4:	df 93       	push	r29
 			static inline uint_reg_t GetGlobalInterruptMask(void)
 			{
 				GCC_MEMORY_BARRIER();
 
 				#if (ARCH == ARCH_AVR8)
 				return SREG;
-     aea:	2f b7       	in	r18, 0x3f	; 63
+     af6:	2f b7       	in	r18, 0x3f	; 63
 			static inline void GlobalInterruptDisable(void)
 			{
 				GCC_MEMORY_BARRIER();
 
 				#if (ARCH == ARCH_AVR8)
 				cli();
-     aec:	f8 94       	cli
+     af8:	f8 94       	cli
 			uint16_t Count;
 
 			uint_reg_t CurrentGlobalInt = GetGlobalInterruptMask();
 			GlobalInterruptDisable();
 
 			Count = Buffer->Count;
-     aee:	80 91 5c 01 	lds	r24, 0x015C
-     af2:	90 91 5d 01 	lds	r25, 0x015D
+     afa:	80 91 5c 01 	lds	r24, 0x015C
+     afe:	90 91 5d 01 	lds	r25, 0x015D
 			static inline void SetGlobalInterruptMask(const uint_reg_t GlobalIntState)
 			{
 				GCC_MEMORY_BARRIER();
 
 				#if (ARCH == ARCH_AVR8)
 				SREG = GlobalIntState;
-     af6:	2f bf       	out	0x3f, r18	; 63
+     b02:	2f bf       	out	0x3f, r18	; 63
   uint8_t action=0,axis=0;
   int8_t num_sign = 1;
   char byte;
   
   /* Load the next byte from the USART transmit buffer into the USART */
   if (!(RingBuffer_IsEmpty(&USBtoUSART_Buffer))) {
-     af8:	00 97       	sbiw	r24, 0x00	; 0
-     afa:	09 f4       	brne	.+2      	; 0xafe <parse_command+0x24>
-     afc:	94 c1       	rjmp	.+808    	; 0xe26 <parse_command+0x34c>
+     b04:	00 97       	sbiw	r24, 0x00	; 0
+     b06:	09 f4       	brne	.+2      	; 0xb0a <parse_command+0x24>
+     b08:	94 c1       	rjmp	.+808    	; 0xe32 <parse_command+0x34c>
     byte = RingBuffer_Remove(&USBtoUSART_Buffer);
-     afe:	82 e5       	ldi	r24, 0x52	; 82
-     b00:	91 e0       	ldi	r25, 0x01	; 1
-     b02:	51 db       	rcall	.-2398   	; 0x1a6 <RingBuffer_Remove>
-     b04:	18 2f       	mov	r17, r24
+     b0a:	82 e5       	ldi	r24, 0x52	; 82
+     b0c:	91 e0       	ldi	r25, 0x01	; 1
+     b0e:	4b db       	rcall	.-2410   	; 0x1a6 <RingBuffer_Remove>
+     b10:	18 2f       	mov	r17, r24
     
     if (byte == '\r' || byte == '\n') {// end of command, evaluate cemmand!
-     b06:	8d 30       	cpi	r24, 0x0D	; 13
-     b08:	19 f0       	breq	.+6      	; 0xb10 <parse_command+0x36>
-     b0a:	8a 30       	cpi	r24, 0x0A	; 10
-     b0c:	09 f0       	breq	.+2      	; 0xb10 <parse_command+0x36>
-     b0e:	74 c1       	rjmp	.+744    	; 0xdf8 <parse_command+0x31e>
+     b12:	8d 30       	cpi	r24, 0x0D	; 13
+     b14:	19 f0       	breq	.+6      	; 0xb1c <parse_command+0x36>
+     b16:	8a 30       	cpi	r24, 0x0A	; 10
+     b18:	09 f0       	breq	.+2      	; 0xb1c <parse_command+0x36>
+     b1a:	74 c1       	rjmp	.+744    	; 0xe04 <parse_command+0x31e>
       uart_puts("\r\n");
-     b10:	84 e1       	ldi	r24, 0x14	; 20
-     b12:	91 e0       	ldi	r25, 0x01	; 1
-     b14:	5f de       	rcall	.-834    	; 0x7d4 <uart_puts>
+     b1c:	84 e1       	ldi	r24, 0x14	; 20
+     b1e:	91 e0       	ldi	r25, 0x01	; 1
+     b20:	59 de       	rcall	.-846    	; 0x7d4 <uart_puts>
       cmdbuffer[cmdPos] = '\0'; // terminate new command string
-     b16:	80 91 6d 02 	lds	r24, 0x026D
-     b1a:	e8 2f       	mov	r30, r24
-     b1c:	f0 e0       	ldi	r31, 0x00	; 0
-     b1e:	ee 57       	subi	r30, 0x7E	; 126
-     b20:	fd 4f       	sbci	r31, 0xFD	; 253
-     b22:	10 82       	st	Z, r1
+     b22:	80 91 6d 02 	lds	r24, 0x026D
+     b26:	e8 2f       	mov	r30, r24
+     b28:	f0 e0       	ldi	r31, 0x00	; 0
+     b2a:	ee 57       	subi	r30, 0x7E	; 126
+     b2c:	fd 4f       	sbci	r31, 0xFD	; 253
+     b2e:	10 82       	st	Z, r1
       curCmdLen = cmdPos;
-     b24:	80 93 6c 02 	sts	0x026C, r24
+     b30:	80 93 6c 02 	sts	0x026C, r24
       cmdPos = 0;
-     b28:	10 92 6d 02 	sts	0x026D, r1
+     b34:	10 92 6d 02 	sts	0x026D, r1
       
       
       if (cmdbuffer[0] == 'g' || cmdbuffer[0] == 'G') { // goto command
-     b2c:	80 91 82 02 	lds	r24, 0x0282
-     b30:	87 36       	cpi	r24, 0x67	; 103
-     b32:	59 f0       	breq	.+22     	; 0xb4a <parse_command+0x70>
-     b34:	87 34       	cpi	r24, 0x47	; 71
-     b36:	49 f0       	breq	.+18     	; 0xb4a <parse_command+0x70>
+     b38:	80 91 82 02 	lds	r24, 0x0282
+     b3c:	87 36       	cpi	r24, 0x67	; 103
+     b3e:	59 f0       	breq	.+22     	; 0xb56 <parse_command+0x70>
+     b40:	87 34       	cpi	r24, 0x47	; 71
+     b42:	49 f0       	breq	.+18     	; 0xb56 <parse_command+0x70>
         action = GOTO;
       } else if ( cmdbuffer[0] == 'm' || cmdbuffer[0] == 'M') {
-     b38:	8d 36       	cpi	r24, 0x6D	; 109
-     b3a:	49 f0       	breq	.+18     	; 0xb4e <parse_command+0x74>
-     b3c:	8d 34       	cpi	r24, 0x4D	; 77
-     b3e:	39 f0       	breq	.+14     	; 0xb4e <parse_command+0x74>
+     b44:	8d 36       	cpi	r24, 0x6D	; 109
+     b46:	49 f0       	breq	.+18     	; 0xb5a <parse_command+0x74>
+     b48:	8d 34       	cpi	r24, 0x4D	; 77
+     b4a:	39 f0       	breq	.+14     	; 0xb5a <parse_command+0x74>
         action = MOVEREL;
       } else if ( cmdbuffer[0] == 'z' || cmdbuffer[0] == 'Z' ) {
-     b40:	8a 37       	cpi	r24, 0x7A	; 122
-     b42:	39 f0       	breq	.+14     	; 0xb52 <parse_command+0x78>
-     b44:	8a 35       	cpi	r24, 0x5A	; 90
-     b46:	39 f4       	brne	.+14     	; 0xb56 <parse_command+0x7c>
-     b48:	04 c0       	rjmp	.+8      	; 0xb52 <parse_command+0x78>
+     b4c:	8a 37       	cpi	r24, 0x7A	; 122
+     b4e:	39 f0       	breq	.+14     	; 0xb5e <parse_command+0x78>
+     b50:	8a 35       	cpi	r24, 0x5A	; 90
+     b52:	39 f4       	brne	.+14     	; 0xb62 <parse_command+0x7c>
+     b54:	04 c0       	rjmp	.+8      	; 0xb5e <parse_command+0x78>
       curCmdLen = cmdPos;
       cmdPos = 0;
       
       
       if (cmdbuffer[0] == 'g' || cmdbuffer[0] == 'G') { // goto command
         action = GOTO;
-     b4a:	01 e0       	ldi	r16, 0x01	; 1
-     b4c:	05 c0       	rjmp	.+10     	; 0xb58 <parse_command+0x7e>
+     b56:	01 e0       	ldi	r16, 0x01	; 1
+     b58:	05 c0       	rjmp	.+10     	; 0xb64 <parse_command+0x7e>
       } else if ( cmdbuffer[0] == 'm' || cmdbuffer[0] == 'M') {
         action = MOVEREL;
-     b4e:	02 e0       	ldi	r16, 0x02	; 2
-     b50:	03 c0       	rjmp	.+6      	; 0xb58 <parse_command+0x7e>
+     b5a:	02 e0       	ldi	r16, 0x02	; 2
+     b5c:	03 c0       	rjmp	.+6      	; 0xb64 <parse_command+0x7e>
       } else if ( cmdbuffer[0] == 'z' || cmdbuffer[0] == 'Z' ) {
         action = SETZERO;
-     b52:	03 e0       	ldi	r16, 0x03	; 3
-     b54:	01 c0       	rjmp	.+2      	; 0xb58 <parse_command+0x7e>
+     b5e:	03 e0       	ldi	r16, 0x03	; 3
+     b60:	01 c0       	rjmp	.+2      	; 0xb64 <parse_command+0x7e>
       } else {
         action = POSITION;
-     b56:	00 e0       	ldi	r16, 0x00	; 0
+     b62:	00 e0       	ldi	r16, 0x00	; 0
       }
       
       if (cmdbuffer[1] == 'x' || cmdbuffer[1] == 'X') {
-     b58:	80 91 83 02 	lds	r24, 0x0283
-     b5c:	88 37       	cpi	r24, 0x78	; 120
-     b5e:	39 f0       	breq	.+14     	; 0xb6e <parse_command+0x94>
-     b60:	88 35       	cpi	r24, 0x58	; 88
-     b62:	29 f0       	breq	.+10     	; 0xb6e <parse_command+0x94>
+     b64:	80 91 83 02 	lds	r24, 0x0283
+     b68:	88 37       	cpi	r24, 0x78	; 120
+     b6a:	39 f0       	breq	.+14     	; 0xb7a <parse_command+0x94>
+     b6c:	88 35       	cpi	r24, 0x58	; 88
+     b6e:	29 f0       	breq	.+10     	; 0xb7a <parse_command+0x94>
         axis = X;
       } else if (cmdbuffer[1] == 'y' || cmdbuffer[1] == 'Y') {
-     b64:	89 37       	cpi	r24, 0x79	; 121
-     b66:	29 f0       	breq	.+10     	; 0xb72 <parse_command+0x98>
+     b70:	89 37       	cpi	r24, 0x79	; 121
+     b72:	29 f0       	breq	.+10     	; 0xb7e <parse_command+0x98>
 #define POSITION 0
 #define GOTO 1
 #define MOVEREL 2
 #define SETZERO 3
 
 void parse_command(void){
-     b68:	11 e0       	ldi	r17, 0x01	; 1
-     b6a:	89 35       	cpi	r24, 0x59	; 89
-     b6c:	19 f0       	breq	.+6      	; 0xb74 <parse_command+0x9a>
+     b74:	11 e0       	ldi	r17, 0x01	; 1
+     b76:	89 35       	cpi	r24, 0x59	; 89
+     b78:	19 f0       	breq	.+6      	; 0xb80 <parse_command+0x9a>
       } else {
         action = POSITION;
       }
       
       if (cmdbuffer[1] == 'x' || cmdbuffer[1] == 'X') {
         axis = X;
-     b6e:	10 e0       	ldi	r17, 0x00	; 0
-     b70:	01 c0       	rjmp	.+2      	; 0xb74 <parse_command+0x9a>
+     b7a:	10 e0       	ldi	r17, 0x00	; 0
+     b7c:	01 c0       	rjmp	.+2      	; 0xb80 <parse_command+0x9a>
       } else if (cmdbuffer[1] == 'y' || cmdbuffer[1] == 'Y') {
         axis = Y;
-     b72:	11 e0       	ldi	r17, 0x01	; 1
+     b7e:	11 e0       	ldi	r17, 0x01	; 1
       }
       
       // if you expect coordinate, parse number!
       if (action == GOTO || action == MOVEREL){
-     b74:	80 2f       	mov	r24, r16
-     b76:	81 50       	subi	r24, 0x01	; 1
-     b78:	82 30       	cpi	r24, 0x02	; 2
-     b7a:	08 f0       	brcs	.+2      	; 0xb7e <parse_command+0xa4>
-     b7c:	6d c0       	rjmp	.+218    	; 0xc58 <parse_command+0x17e>
+     b80:	80 2f       	mov	r24, r16
+     b82:	81 50       	subi	r24, 0x01	; 1
+     b84:	82 30       	cpi	r24, 0x02	; 2
+     b86:	08 f0       	brcs	.+2      	; 0xb8a <parse_command+0xa4>
+     b88:	6d c0       	rjmp	.+218    	; 0xc64 <parse_command+0x17e>
 
         predot = 0;
-     b7e:	10 92 71 02 	sts	0x0271, r1
-     b82:	10 92 70 02 	sts	0x0270, r1
+     b8a:	10 92 71 02 	sts	0x0271, r1
+     b8e:	10 92 70 02 	sts	0x0270, r1
         postdot = 0;
-     b86:	10 92 6f 02 	sts	0x026F, r1
-     b8a:	10 92 6e 02 	sts	0x026E, r1
+     b92:	10 92 6f 02 	sts	0x026F, r1
+     b96:	10 92 6e 02 	sts	0x026E, r1
         num_sign = 1;
         num_start = 0;
-     b8e:	10 92 6b 02 	sts	0x026B, r1
+     b9a:	10 92 6b 02 	sts	0x026B, r1
         nums_found = 0;
-     b92:	10 92 6a 02 	sts	0x026A, r1
+     b9e:	10 92 6a 02 	sts	0x026A, r1
         
         for (uint8_t i=2; i<=curCmdLen; i++) {
-     b96:	92 e0       	ldi	r25, 0x02	; 2
-     b98:	f9 2e       	mov	r15, r25
+     ba2:	92 e0       	ldi	r25, 0x02	; 2
+     ba4:	f9 2e       	mov	r15, r25
       // if you expect coordinate, parse number!
       if (action == GOTO || action == MOVEREL){
 
         predot = 0;
         postdot = 0;
         num_sign = 1;
-     b9a:	dd 24       	eor	r13, r13
-     b9c:	d3 94       	inc	r13
+     ba6:	dd 24       	eor	r13, r13
+     ba8:	d3 94       	inc	r13
                   predot = atoi(numbuffer);
                 } else { // its the postdot digits
                   uint8_t postdotlen = i-num_start;
                   if (postdotlen < 3){ // if too small ,fill with zeros
                     for( uint8_t j = postdotlen; j <=2; j++) {
                       numbuffer[j] = '0';
-     b9e:	80 e3       	ldi	r24, 0x30	; 48
-     ba0:	c8 2e       	mov	r12, r24
+     baa:	80 e3       	ldi	r24, 0x30	; 48
+     bac:	c8 2e       	mov	r12, r24
         postdot = 0;
         num_sign = 1;
         num_start = 0;
         nums_found = 0;
         
         for (uint8_t i=2; i<=curCmdLen; i++) {
-     ba2:	54 c0       	rjmp	.+168    	; 0xc4c <parse_command+0x172>
+     bae:	54 c0       	rjmp	.+168    	; 0xc58 <parse_command+0x172>
            if ( num_start == 0 && cmdbuffer[i] == '-' ) { // if you find a minus before
-     ba4:	e0 90 6b 02 	lds	r14, 0x026B
-     ba8:	ee 20       	and	r14, r14
-     baa:	49 f4       	brne	.+18     	; 0xbbe <parse_command+0xe4>
-     bac:	ef 2d       	mov	r30, r15
-     bae:	f0 e0       	ldi	r31, 0x00	; 0
-     bb0:	ee 57       	subi	r30, 0x7E	; 126
-     bb2:	fd 4f       	sbci	r31, 0xFD	; 253
-     bb4:	80 81       	ld	r24, Z
-     bb6:	8d 32       	cpi	r24, 0x2D	; 45
-     bb8:	11 f4       	brne	.+4      	; 0xbbe <parse_command+0xe4>
+     bb0:	e0 90 6b 02 	lds	r14, 0x026B
+     bb4:	ee 20       	and	r14, r14
+     bb6:	49 f4       	brne	.+18     	; 0xbca <parse_command+0xe4>
+     bb8:	ef 2d       	mov	r30, r15
+     bba:	f0 e0       	ldi	r31, 0x00	; 0
+     bbc:	ee 57       	subi	r30, 0x7E	; 126
+     bbe:	fd 4f       	sbci	r31, 0xFD	; 253
+     bc0:	80 81       	ld	r24, Z
+     bc2:	8d 32       	cpi	r24, 0x2D	; 45
+     bc4:	11 f4       	brne	.+4      	; 0xbca <parse_command+0xe4>
             // you find a digit, it's a negative number
              num_sign = -1;
-     bba:	dd 24       	eor	r13, r13
-     bbc:	da 94       	dec	r13
+     bc6:	dd 24       	eor	r13, r13
+     bc8:	da 94       	dec	r13
            }
            
            if ( cmdbuffer[i] >= 48 && cmdbuffer[i] <= 57 ){ // is it a number?
-     bbe:	cf 2d       	mov	r28, r15
-     bc0:	d0 e0       	ldi	r29, 0x00	; 0
-     bc2:	fe 01       	movw	r30, r28
-     bc4:	ee 57       	subi	r30, 0x7E	; 126
-     bc6:	fd 4f       	sbci	r31, 0xFD	; 253
-     bc8:	80 81       	ld	r24, Z
-     bca:	80 53       	subi	r24, 0x30	; 48
-     bcc:	8a 30       	cpi	r24, 0x0A	; 10
-     bce:	28 f4       	brcc	.+10     	; 0xbda <parse_command+0x100>
+     bca:	cf 2d       	mov	r28, r15
+     bcc:	d0 e0       	ldi	r29, 0x00	; 0
+     bce:	fe 01       	movw	r30, r28
+     bd0:	ee 57       	subi	r30, 0x7E	; 126
+     bd2:	fd 4f       	sbci	r31, 0xFD	; 253
+     bd4:	80 81       	ld	r24, Z
+     bd6:	80 53       	subi	r24, 0x30	; 48
+     bd8:	8a 30       	cpi	r24, 0x0A	; 10
+     bda:	28 f4       	brcc	.+10     	; 0xbe6 <parse_command+0x100>
              if ( num_start == 0) { // this is the first digit in the string
-     bd0:	ee 20       	and	r14, r14
-     bd2:	d9 f5       	brne	.+118    	; 0xc4a <parse_command+0x170>
+     bdc:	ee 20       	and	r14, r14
+     bde:	d9 f5       	brne	.+118    	; 0xc56 <parse_command+0x170>
                num_start = i;
-     bd4:	f0 92 6b 02 	sts	0x026B, r15
-     bd8:	38 c0       	rjmp	.+112    	; 0xc4a <parse_command+0x170>
+     be0:	f0 92 6b 02 	sts	0x026B, r15
+     be4:	38 c0       	rjmp	.+112    	; 0xc56 <parse_command+0x170>
              }
            } else { // no digit!
              if ( num_start != 0) { // digits have been found before
-     bda:	ee 20       	and	r14, r14
-     bdc:	b1 f1       	breq	.+108    	; 0xc4a <parse_command+0x170>
+     be6:	ee 20       	and	r14, r14
+     be8:	b1 f1       	breq	.+108    	; 0xc56 <parse_command+0x170>
                 strncpy(numbuffer,cmdbuffer+num_start,i-num_start); // copy number found to
-     bde:	6e 2d       	mov	r22, r14
-     be0:	70 e0       	ldi	r23, 0x00	; 0
-     be2:	c6 1b       	sub	r28, r22
-     be4:	d7 0b       	sbc	r29, r23
-     be6:	6e 57       	subi	r22, 0x7E	; 126
-     be8:	7d 4f       	sbci	r23, 0xFD	; 253
-     bea:	82 e7       	ldi	r24, 0x72	; 114
-     bec:	92 e0       	ldi	r25, 0x02	; 2
-     bee:	ae 01       	movw	r20, r28
-     bf0:	0e 94 61 0f 	call	0x1ec2	; 0x1ec2 <strncpy>
+     bea:	6e 2d       	mov	r22, r14
+     bec:	70 e0       	ldi	r23, 0x00	; 0
+     bee:	c6 1b       	sub	r28, r22
+     bf0:	d7 0b       	sbc	r29, r23
+     bf2:	6e 57       	subi	r22, 0x7E	; 126
+     bf4:	7d 4f       	sbci	r23, 0xFD	; 253
+     bf6:	82 e7       	ldi	r24, 0x72	; 114
+     bf8:	92 e0       	ldi	r25, 0x02	; 2
+     bfa:	ae 01       	movw	r20, r28
+     bfc:	0e 94 61 0f 	call	0x1ec2	; 0x1ec2 <strncpy>
                 // numbuffer
                 numbuffer[i-num_start] = '\0'; // make sure it's always a terminated string
-     bf4:	ce 58       	subi	r28, 0x8E	; 142
-     bf6:	dd 4f       	sbci	r29, 0xFD	; 253
-     bf8:	18 82       	st	Y, r1
+     c00:	ce 58       	subi	r28, 0x8E	; 142
+     c02:	dd 4f       	sbci	r29, 0xFD	; 253
+     c04:	18 82       	st	Y, r1
                 nums_found++;
-     bfa:	80 91 6a 02 	lds	r24, 0x026A
-     bfe:	8f 5f       	subi	r24, 0xFF	; 255
-     c00:	80 93 6a 02 	sts	0x026A, r24
+     c06:	80 91 6a 02 	lds	r24, 0x026A
+     c0a:	8f 5f       	subi	r24, 0xFF	; 255
+     c0c:	80 93 6a 02 	sts	0x026A, r24
                 if(nums_found == 1) { // its the predot digits
-     c04:	81 30       	cpi	r24, 0x01	; 1
-     c06:	49 f4       	brne	.+18     	; 0xc1a <parse_command+0x140>
+     c10:	81 30       	cpi	r24, 0x01	; 1
+     c12:	49 f4       	brne	.+18     	; 0xc26 <parse_command+0x140>
                   predot = atoi(numbuffer);
-     c08:	82 e7       	ldi	r24, 0x72	; 114
-     c0a:	92 e0       	ldi	r25, 0x02	; 2
-     c0c:	0e 94 44 0f 	call	0x1e88	; 0x1e88 <atoi>
-     c10:	90 93 71 02 	sts	0x0271, r25
-     c14:	80 93 70 02 	sts	0x0270, r24
-     c18:	16 c0       	rjmp	.+44     	; 0xc46 <parse_command+0x16c>
+     c14:	82 e7       	ldi	r24, 0x72	; 114
+     c16:	92 e0       	ldi	r25, 0x02	; 2
+     c18:	0e 94 44 0f 	call	0x1e88	; 0x1e88 <atoi>
+     c1c:	90 93 71 02 	sts	0x0271, r25
+     c20:	80 93 70 02 	sts	0x0270, r24
+     c24:	16 c0       	rjmp	.+44     	; 0xc52 <parse_command+0x16c>
                 } else { // its the postdot digits
                   uint8_t postdotlen = i-num_start;
-     c1a:	8f 2d       	mov	r24, r15
-     c1c:	8e 19       	sub	r24, r14
+     c26:	8f 2d       	mov	r24, r15
+     c28:	8e 19       	sub	r24, r14
                   if (postdotlen < 3){ // if too small ,fill with zeros
-     c1e:	83 30       	cpi	r24, 0x03	; 3
-     c20:	40 f4       	brcc	.+16     	; 0xc32 <parse_command+0x158>
+     c2a:	83 30       	cpi	r24, 0x03	; 3
+     c2c:	40 f4       	brcc	.+16     	; 0xc3e <parse_command+0x158>
                     for( uint8_t j = postdotlen; j <=2; j++) {
                       numbuffer[j] = '0';
-     c22:	e8 2f       	mov	r30, r24
-     c24:	f0 e0       	ldi	r31, 0x00	; 0
-     c26:	ee 58       	subi	r30, 0x8E	; 142
-     c28:	fd 4f       	sbci	r31, 0xFD	; 253
-     c2a:	c0 82       	st	Z, r12
+     c2e:	e8 2f       	mov	r30, r24
+     c30:	f0 e0       	ldi	r31, 0x00	; 0
+     c32:	ee 58       	subi	r30, 0x8E	; 142
+     c34:	fd 4f       	sbci	r31, 0xFD	; 253
+     c36:	c0 82       	st	Z, r12
                 if(nums_found == 1) { // its the predot digits
                   predot = atoi(numbuffer);
                 } else { // its the postdot digits
                   uint8_t postdotlen = i-num_start;
                   if (postdotlen < 3){ // if too small ,fill with zeros
                     for( uint8_t j = postdotlen; j <=2; j++) {
-     c2c:	8f 5f       	subi	r24, 0xFF	; 255
-     c2e:	83 30       	cpi	r24, 0x03	; 3
-     c30:	c1 f7       	brne	.-16     	; 0xc22 <parse_command+0x148>
+     c38:	8f 5f       	subi	r24, 0xFF	; 255
+     c3a:	83 30       	cpi	r24, 0x03	; 3
+     c3c:	c1 f7       	brne	.-16     	; 0xc2e <parse_command+0x148>
                       numbuffer[j] = '0';
                     }
                   }
                   // crop the number to three post dot digits
                   numbuffer[3] = '\0';
-     c32:	10 92 75 02 	sts	0x0275, r1
+     c3e:	10 92 75 02 	sts	0x0275, r1
                   
                   postdot = atoi(numbuffer);
-     c36:	82 e7       	ldi	r24, 0x72	; 114
-     c38:	92 e0       	ldi	r25, 0x02	; 2
-     c3a:	0e 94 44 0f 	call	0x1e88	; 0x1e88 <atoi>
-     c3e:	90 93 6f 02 	sts	0x026F, r25
-     c42:	80 93 6e 02 	sts	0x026E, r24
+     c42:	82 e7       	ldi	r24, 0x72	; 114
+     c44:	92 e0       	ldi	r25, 0x02	; 2
+     c46:	0e 94 44 0f 	call	0x1e88	; 0x1e88 <atoi>
+     c4a:	90 93 6f 02 	sts	0x026F, r25
+     c4e:	80 93 6e 02 	sts	0x026E, r24
                 }
                 num_start = 0;
-     c46:	10 92 6b 02 	sts	0x026B, r1
+     c52:	10 92 6b 02 	sts	0x026B, r1
         postdot = 0;
         num_sign = 1;
         num_start = 0;
         nums_found = 0;
         
         for (uint8_t i=2; i<=curCmdLen; i++) {
-     c4a:	f3 94       	inc	r15
-     c4c:	80 91 6c 02 	lds	r24, 0x026C
-     c50:	8f 15       	cp	r24, r15
-     c52:	08 f0       	brcs	.+2      	; 0xc56 <parse_command+0x17c>
-     c54:	a7 cf       	rjmp	.-178    	; 0xba4 <parse_command+0xca>
-     c56:	02 c0       	rjmp	.+4      	; 0xc5c <parse_command+0x182>
+     c56:	f3 94       	inc	r15
+     c58:	80 91 6c 02 	lds	r24, 0x026C
+     c5c:	8f 15       	cp	r24, r15
+     c5e:	08 f0       	brcs	.+2      	; 0xc62 <parse_command+0x17c>
+     c60:	a7 cf       	rjmp	.-178    	; 0xbb0 <parse_command+0xca>
+     c62:	02 c0       	rjmp	.+4      	; 0xc68 <parse_command+0x182>
   static char cmdbuffer[32];
   static char numbuffer[16];
   static uint16_t predot = 0,postdot = 0;
   static uint8_t cmdPos, curCmdLen, num_start = 0, nums_found = 0;
   uint8_t action=0,axis=0;
   int8_t num_sign = 1;
-     c58:	dd 24       	eor	r13, r13
-     c5a:	d3 94       	inc	r13
+     c64:	dd 24       	eor	r13, r13
+     c66:	d3 94       	inc	r13
         
       }
       
       int16_t steps = 0,dest=0;
       
       switch (action) {
-     c5c:	02 30       	cpi	r16, 0x02	; 2
-     c5e:	09 f4       	brne	.+2      	; 0xc62 <parse_command+0x188>
-     c60:	61 c0       	rjmp	.+194    	; 0xd24 <parse_command+0x24a>
-     c62:	03 30       	cpi	r16, 0x03	; 3
-     c64:	09 f4       	brne	.+2      	; 0xc68 <parse_command+0x18e>
-     c66:	be c0       	rjmp	.+380    	; 0xde4 <parse_command+0x30a>
-     c68:	01 30       	cpi	r16, 0x01	; 1
-     c6a:	09 f0       	breq	.+2      	; 0xc6e <parse_command+0x194>
-     c6c:	c3 c0       	rjmp	.+390    	; 0xdf4 <parse_command+0x31a>
+     c68:	02 30       	cpi	r16, 0x02	; 2
+     c6a:	09 f4       	brne	.+2      	; 0xc6e <parse_command+0x188>
+     c6c:	61 c0       	rjmp	.+194    	; 0xd30 <parse_command+0x24a>
+     c6e:	03 30       	cpi	r16, 0x03	; 3
+     c70:	09 f4       	brne	.+2      	; 0xc74 <parse_command+0x18e>
+     c72:	be c0       	rjmp	.+380    	; 0xdf0 <parse_command+0x30a>
+     c74:	01 30       	cpi	r16, 0x01	; 1
+     c76:	09 f0       	breq	.+2      	; 0xc7a <parse_command+0x194>
+     c78:	c3 c0       	rjmp	.+390    	; 0xe00 <parse_command+0x31a>
         case GOTO:
           uart_puts("GOTO ");
-     c6e:	87 e1       	ldi	r24, 0x17	; 23
-     c70:	91 e0       	ldi	r25, 0x01	; 1
-     c72:	b0 dd       	rcall	.-1184   	; 0x7d4 <uart_puts>
+     c7a:	87 e1       	ldi	r24, 0x17	; 23
+     c7c:	91 e0       	ldi	r25, 0x01	; 1
+     c7e:	aa dd       	rcall	.-1196   	; 0x7d4 <uart_puts>
           uart_putc(88+axis);// x or y
-     c74:	81 2f       	mov	r24, r17
-     c76:	88 5a       	subi	r24, 0xA8	; 168
-     c78:	a5 dd       	rcall	.-1206   	; 0x7c4 <uart_putc>
+     c80:	81 2f       	mov	r24, r17
+     c82:	88 5a       	subi	r24, 0xA8	; 168
+     c84:	9f dd       	rcall	.-1218   	; 0x7c4 <uart_putc>
           uart_putc(' ');
-     c7a:	80 e2       	ldi	r24, 0x20	; 32
-     c7c:	a3 dd       	rcall	.-1210   	; 0x7c4 <uart_putc>
+     c86:	80 e2       	ldi	r24, 0x20	; 32
+     c88:	9d dd       	rcall	.-1222   	; 0x7c4 <uart_putc>
           uart_print_signed_number(predot*num_sign,3);
-     c7e:	cd 2d       	mov	r28, r13
-     c80:	dd 27       	eor	r29, r29
-     c82:	c7 fd       	sbrc	r28, 7
-     c84:	d0 95       	com	r29
-     c86:	60 91 70 02 	lds	r22, 0x0270
-     c8a:	70 91 71 02 	lds	r23, 0x0271
-     c8e:	ce 01       	movw	r24, r28
-     c90:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
-     c94:	bc 01       	movw	r22, r24
-     c96:	80 e0       	ldi	r24, 0x00	; 0
-     c98:	90 e0       	ldi	r25, 0x00	; 0
-     c9a:	43 e0       	ldi	r20, 0x03	; 3
-     c9c:	34 de       	rcall	.-920    	; 0x906 <uart_print_signed_number>
+     c8a:	cd 2d       	mov	r28, r13
+     c8c:	dd 27       	eor	r29, r29
+     c8e:	c7 fd       	sbrc	r28, 7
+     c90:	d0 95       	com	r29
+     c92:	60 91 70 02 	lds	r22, 0x0270
+     c96:	70 91 71 02 	lds	r23, 0x0271
+     c9a:	ce 01       	movw	r24, r28
+     c9c:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
+     ca0:	bc 01       	movw	r22, r24
+     ca2:	80 e0       	ldi	r24, 0x00	; 0
+     ca4:	90 e0       	ldi	r25, 0x00	; 0
+     ca6:	43 e0       	ldi	r20, 0x03	; 3
+     ca8:	2e de       	rcall	.-932    	; 0x906 <uart_print_signed_number>
           uart_putc('.');
-     c9e:	8e e2       	ldi	r24, 0x2E	; 46
-     ca0:	91 dd       	rcall	.-1246   	; 0x7c4 <uart_putc>
+     caa:	8e e2       	ldi	r24, 0x2E	; 46
+     cac:	8b dd       	rcall	.-1258   	; 0x7c4 <uart_putc>
           uart_print_number_wlzeros(postdot,3);
-     ca2:	60 91 6e 02 	lds	r22, 0x026E
-     ca6:	70 91 6f 02 	lds	r23, 0x026F
-     caa:	80 e0       	ldi	r24, 0x00	; 0
-     cac:	90 e0       	ldi	r25, 0x00	; 0
-     cae:	43 e0       	ldi	r20, 0x03	; 3
-     cb0:	16 de       	rcall	.-980    	; 0x8de <uart_print_number_wlzeros>
+     cae:	60 91 6e 02 	lds	r22, 0x026E
+     cb2:	70 91 6f 02 	lds	r23, 0x026F
+     cb6:	80 e0       	ldi	r24, 0x00	; 0
+     cb8:	90 e0       	ldi	r25, 0x00	; 0
+     cba:	43 e0       	ldi	r20, 0x03	; 3
+     cbc:	10 de       	rcall	.-992    	; 0x8de <uart_print_number_wlzeros>
           uart_puts("\r\n"); 
-     cb2:	84 e1       	ldi	r24, 0x14	; 20
-     cb4:	91 e0       	ldi	r25, 0x01	; 1
-     cb6:	8e dd       	rcall	.-1252   	; 0x7d4 <uart_puts>
+     cbe:	84 e1       	ldi	r24, 0x14	; 20
+     cc0:	91 e0       	ldi	r25, 0x01	; 1
+     cc2:	88 dd       	rcall	.-1264   	; 0x7d4 <uart_puts>
           
           dest = num_sign *( predot*24 +(postdot*10)/416);
-     cb8:	80 91 6e 02 	lds	r24, 0x026E
-     cbc:	90 91 6f 02 	lds	r25, 0x026F
-     cc0:	6a e0       	ldi	r22, 0x0A	; 10
-     cc2:	70 e0       	ldi	r23, 0x00	; 0
-     cc4:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
-     cc8:	60 ea       	ldi	r22, 0xA0	; 160
-     cca:	71 e0       	ldi	r23, 0x01	; 1
-     ccc:	0e 94 fb 0e 	call	0x1df6	; 0x1df6 <__udivmodhi4>
-     cd0:	9b 01       	movw	r18, r22
-     cd2:	80 91 70 02 	lds	r24, 0x0270
-     cd6:	90 91 71 02 	lds	r25, 0x0271
-     cda:	68 e1       	ldi	r22, 0x18	; 24
-     cdc:	70 e0       	ldi	r23, 0x00	; 0
-     cde:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
-     ce2:	28 0f       	add	r18, r24
-     ce4:	39 1f       	adc	r19, r25
-     ce6:	ce 01       	movw	r24, r28
-     ce8:	b9 01       	movw	r22, r18
+     cc4:	80 91 6e 02 	lds	r24, 0x026E
+     cc8:	90 91 6f 02 	lds	r25, 0x026F
+     ccc:	6a e0       	ldi	r22, 0x0A	; 10
+     cce:	70 e0       	ldi	r23, 0x00	; 0
+     cd0:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
+     cd4:	60 ea       	ldi	r22, 0xA0	; 160
+     cd6:	71 e0       	ldi	r23, 0x01	; 1
+     cd8:	0e 94 fb 0e 	call	0x1df6	; 0x1df6 <__udivmodhi4>
+     cdc:	9b 01       	movw	r18, r22
+     cde:	80 91 70 02 	lds	r24, 0x0270
+     ce2:	90 91 71 02 	lds	r25, 0x0271
+     ce6:	68 e1       	ldi	r22, 0x18	; 24
+     ce8:	70 e0       	ldi	r23, 0x00	; 0
      cea:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
+     cee:	28 0f       	add	r18, r24
+     cf0:	39 1f       	adc	r19, r25
+     cf2:	ce 01       	movw	r24, r28
+     cf4:	b9 01       	movw	r22, r18
+     cf6:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
           
           if (axis == X) {
-     cee:	11 23       	and	r17, r17
-     cf0:	69 f4       	brne	.+26     	; 0xd0c <parse_command+0x232>
+     cfa:	11 23       	and	r17, r17
+     cfc:	69 f4       	brne	.+26     	; 0xd18 <parse_command+0x232>
             steps = dest - plate_pos_x; // experimental correction!
-     cf2:	20 91 4e 01 	lds	r18, 0x014E
-     cf6:	30 91 4f 01 	lds	r19, 0x014F
-     cfa:	e8 2e       	mov	r14, r24
-     cfc:	e7 01       	movw	r28, r14
-     cfe:	7e 01       	movw	r14, r28
-     d00:	f9 2e       	mov	r15, r25
-     d02:	e7 01       	movw	r28, r14
-     d04:	c2 1b       	sub	r28, r18
-     d06:	d3 0b       	sbc	r29, r19
+     cfe:	20 91 4e 01 	lds	r18, 0x014E
+     d02:	30 91 4f 01 	lds	r19, 0x014F
+     d06:	e8 2e       	mov	r14, r24
+     d08:	e7 01       	movw	r28, r14
+     d0a:	7e 01       	movw	r14, r28
+     d0c:	f9 2e       	mov	r15, r25
+     d0e:	e7 01       	movw	r28, r14
+     d10:	c2 1b       	sub	r28, r18
+     d12:	d3 0b       	sbc	r29, r19
             move_plate(steps,0);
-     d08:	ce 01       	movw	r24, r28
-     d0a:	4f c0       	rjmp	.+158    	; 0xdaa <parse_command+0x2d0>
+     d14:	ce 01       	movw	r24, r28
+     d16:	4f c0       	rjmp	.+158    	; 0xdb6 <parse_command+0x2d0>
             plate_pos_x += steps;
           } else if (axis == Y) {
             steps = dest - plate_pos_y;
-     d0c:	20 91 50 01 	lds	r18, 0x0150
-     d10:	30 91 51 01 	lds	r19, 0x0151
-     d14:	e8 2e       	mov	r14, r24
-     d16:	e7 01       	movw	r28, r14
-     d18:	7e 01       	movw	r14, r28
-     d1a:	f9 2e       	mov	r15, r25
-     d1c:	e7 01       	movw	r28, r14
-     d1e:	c2 1b       	sub	r28, r18
-     d20:	d3 0b       	sbc	r29, r19
-     d22:	51 c0       	rjmp	.+162    	; 0xdc6 <parse_command+0x2ec>
+     d18:	20 91 50 01 	lds	r18, 0x0150
+     d1c:	30 91 51 01 	lds	r19, 0x0151
+     d20:	e8 2e       	mov	r14, r24
+     d22:	e7 01       	movw	r28, r14
+     d24:	7e 01       	movw	r14, r28
+     d26:	f9 2e       	mov	r15, r25
+     d28:	e7 01       	movw	r28, r14
+     d2a:	c2 1b       	sub	r28, r18
+     d2c:	d3 0b       	sbc	r29, r19
+     d2e:	51 c0       	rjmp	.+162    	; 0xdd2 <parse_command+0x2ec>
           }
           pos_report();
           
           break;
         case MOVEREL:
           uart_puts("MOVE ");
-     d24:	8d e1       	ldi	r24, 0x1D	; 29
-     d26:	91 e0       	ldi	r25, 0x01	; 1
-     d28:	55 dd       	rcall	.-1366   	; 0x7d4 <uart_puts>
+     d30:	8d e1       	ldi	r24, 0x1D	; 29
+     d32:	91 e0       	ldi	r25, 0x01	; 1
+     d34:	4f dd       	rcall	.-1378   	; 0x7d4 <uart_puts>
           uart_putc(88+axis);// x or y
-     d2a:	81 2f       	mov	r24, r17
-     d2c:	88 5a       	subi	r24, 0xA8	; 168
-     d2e:	4a dd       	rcall	.-1388   	; 0x7c4 <uart_putc>
+     d36:	81 2f       	mov	r24, r17
+     d38:	88 5a       	subi	r24, 0xA8	; 168
+     d3a:	44 dd       	rcall	.-1400   	; 0x7c4 <uart_putc>
           uart_putc(' ');
-     d30:	80 e2       	ldi	r24, 0x20	; 32
-     d32:	48 dd       	rcall	.-1392   	; 0x7c4 <uart_putc>
+     d3c:	80 e2       	ldi	r24, 0x20	; 32
+     d3e:	42 dd       	rcall	.-1404   	; 0x7c4 <uart_putc>
           uart_print_signed_number(predot*num_sign,3);
-     d34:	cd 2d       	mov	r28, r13
-     d36:	dd 27       	eor	r29, r29
-     d38:	c7 fd       	sbrc	r28, 7
-     d3a:	d0 95       	com	r29
-     d3c:	60 91 70 02 	lds	r22, 0x0270
-     d40:	70 91 71 02 	lds	r23, 0x0271
-     d44:	ce 01       	movw	r24, r28
-     d46:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
-     d4a:	bc 01       	movw	r22, r24
-     d4c:	80 e0       	ldi	r24, 0x00	; 0
-     d4e:	90 e0       	ldi	r25, 0x00	; 0
-     d50:	43 e0       	ldi	r20, 0x03	; 3
-     d52:	d9 dd       	rcall	.-1102   	; 0x906 <uart_print_signed_number>
+     d40:	cd 2d       	mov	r28, r13
+     d42:	dd 27       	eor	r29, r29
+     d44:	c7 fd       	sbrc	r28, 7
+     d46:	d0 95       	com	r29
+     d48:	60 91 70 02 	lds	r22, 0x0270
+     d4c:	70 91 71 02 	lds	r23, 0x0271
+     d50:	ce 01       	movw	r24, r28
+     d52:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
+     d56:	bc 01       	movw	r22, r24
+     d58:	80 e0       	ldi	r24, 0x00	; 0
+     d5a:	90 e0       	ldi	r25, 0x00	; 0
+     d5c:	43 e0       	ldi	r20, 0x03	; 3
+     d5e:	d3 dd       	rcall	.-1114   	; 0x906 <uart_print_signed_number>
           uart_putc('.');
-     d54:	8e e2       	ldi	r24, 0x2E	; 46
-     d56:	36 dd       	rcall	.-1428   	; 0x7c4 <uart_putc>
+     d60:	8e e2       	ldi	r24, 0x2E	; 46
+     d62:	30 dd       	rcall	.-1440   	; 0x7c4 <uart_putc>
           uart_print_number_wlzeros(postdot,3);
-     d58:	60 91 6e 02 	lds	r22, 0x026E
-     d5c:	70 91 6f 02 	lds	r23, 0x026F
-     d60:	80 e0       	ldi	r24, 0x00	; 0
-     d62:	90 e0       	ldi	r25, 0x00	; 0
-     d64:	43 e0       	ldi	r20, 0x03	; 3
-     d66:	bb dd       	rcall	.-1162   	; 0x8de <uart_print_number_wlzeros>
+     d64:	60 91 6e 02 	lds	r22, 0x026E
+     d68:	70 91 6f 02 	lds	r23, 0x026F
+     d6c:	80 e0       	ldi	r24, 0x00	; 0
+     d6e:	90 e0       	ldi	r25, 0x00	; 0
+     d70:	43 e0       	ldi	r20, 0x03	; 3
+     d72:	b5 dd       	rcall	.-1174   	; 0x8de <uart_print_number_wlzeros>
           uart_puts("\r\n"); 
-     d68:	84 e1       	ldi	r24, 0x14	; 20
-     d6a:	91 e0       	ldi	r25, 0x01	; 1
-     d6c:	33 dd       	rcall	.-1434   	; 0x7d4 <uart_puts>
+     d74:	84 e1       	ldi	r24, 0x14	; 20
+     d76:	91 e0       	ldi	r25, 0x01	; 1
+     d78:	2d dd       	rcall	.-1446   	; 0x7d4 <uart_puts>
           
           steps = num_sign *( predot*24 +(postdot*10)/416);
-     d6e:	80 91 6e 02 	lds	r24, 0x026E
-     d72:	90 91 6f 02 	lds	r25, 0x026F
-     d76:	6a e0       	ldi	r22, 0x0A	; 10
-     d78:	70 e0       	ldi	r23, 0x00	; 0
-     d7a:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
-     d7e:	60 ea       	ldi	r22, 0xA0	; 160
-     d80:	71 e0       	ldi	r23, 0x01	; 1
-     d82:	0e 94 fb 0e 	call	0x1df6	; 0x1df6 <__udivmodhi4>
-     d86:	9b 01       	movw	r18, r22
-     d88:	80 91 70 02 	lds	r24, 0x0270
-     d8c:	90 91 71 02 	lds	r25, 0x0271
-     d90:	68 e1       	ldi	r22, 0x18	; 24
-     d92:	70 e0       	ldi	r23, 0x00	; 0
-     d94:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
-     d98:	28 0f       	add	r18, r24
-     d9a:	39 1f       	adc	r19, r25
-     d9c:	ce 01       	movw	r24, r28
-     d9e:	b9 01       	movw	r22, r18
+     d7a:	80 91 6e 02 	lds	r24, 0x026E
+     d7e:	90 91 6f 02 	lds	r25, 0x026F
+     d82:	6a e0       	ldi	r22, 0x0A	; 10
+     d84:	70 e0       	ldi	r23, 0x00	; 0
+     d86:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
+     d8a:	60 ea       	ldi	r22, 0xA0	; 160
+     d8c:	71 e0       	ldi	r23, 0x01	; 1
+     d8e:	0e 94 fb 0e 	call	0x1df6	; 0x1df6 <__udivmodhi4>
+     d92:	9b 01       	movw	r18, r22
+     d94:	80 91 70 02 	lds	r24, 0x0270
+     d98:	90 91 71 02 	lds	r25, 0x0271
+     d9c:	68 e1       	ldi	r22, 0x18	; 24
+     d9e:	70 e0       	ldi	r23, 0x00	; 0
      da0:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
-     da4:	ec 01       	movw	r28, r24
+     da4:	28 0f       	add	r18, r24
+     da6:	39 1f       	adc	r19, r25
+     da8:	ce 01       	movw	r24, r28
+     daa:	b9 01       	movw	r22, r18
+     dac:	0e 94 e9 0e 	call	0x1dd2	; 0x1dd2 <__mulhi3>
+     db0:	ec 01       	movw	r28, r24
           
           if (axis == X) {
-     da6:	11 23       	and	r17, r17
-     da8:	71 f4       	brne	.+28     	; 0xdc6 <parse_command+0x2ec>
+     db2:	11 23       	and	r17, r17
+     db4:	71 f4       	brne	.+28     	; 0xdd2 <parse_command+0x2ec>
             move_plate(steps,0);
-     daa:	60 e0       	ldi	r22, 0x00	; 0
-     dac:	70 e0       	ldi	r23, 0x00	; 0
-     dae:	0d de       	rcall	.-998    	; 0x9ca <move_plate>
+     db6:	60 e0       	ldi	r22, 0x00	; 0
+     db8:	70 e0       	ldi	r23, 0x00	; 0
+     dba:	07 de       	rcall	.-1010   	; 0x9ca <move_plate>
             plate_pos_x += steps;
-     db0:	80 91 4e 01 	lds	r24, 0x014E
-     db4:	90 91 4f 01 	lds	r25, 0x014F
-     db8:	8c 0f       	add	r24, r28
-     dba:	9d 1f       	adc	r25, r29
-     dbc:	90 93 4f 01 	sts	0x014F, r25
-     dc0:	80 93 4e 01 	sts	0x014E, r24
-     dc4:	17 c0       	rjmp	.+46     	; 0xdf4 <parse_command+0x31a>
+     dbc:	80 91 4e 01 	lds	r24, 0x014E
+     dc0:	90 91 4f 01 	lds	r25, 0x014F
+     dc4:	8c 0f       	add	r24, r28
+     dc6:	9d 1f       	adc	r25, r29
+     dc8:	90 93 4f 01 	sts	0x014F, r25
+     dcc:	80 93 4e 01 	sts	0x014E, r24
+     dd0:	17 c0       	rjmp	.+46     	; 0xe00 <parse_command+0x31a>
           } else if (axis == Y) {
             move_plate(0,steps);
-     dc6:	80 e0       	ldi	r24, 0x00	; 0
-     dc8:	90 e0       	ldi	r25, 0x00	; 0
-     dca:	be 01       	movw	r22, r28
-     dcc:	fe dd       	rcall	.-1028   	; 0x9ca <move_plate>
+     dd2:	80 e0       	ldi	r24, 0x00	; 0
+     dd4:	90 e0       	ldi	r25, 0x00	; 0
+     dd6:	be 01       	movw	r22, r28
+     dd8:	f8 dd       	rcall	.-1040   	; 0x9ca <move_plate>
             plate_pos_y += steps;
-     dce:	80 91 50 01 	lds	r24, 0x0150
-     dd2:	90 91 51 01 	lds	r25, 0x0151
-     dd6:	8c 0f       	add	r24, r28
-     dd8:	9d 1f       	adc	r25, r29
-     dda:	90 93 51 01 	sts	0x0151, r25
-     dde:	80 93 50 01 	sts	0x0150, r24
-     de2:	08 c0       	rjmp	.+16     	; 0xdf4 <parse_command+0x31a>
+     dda:	80 91 50 01 	lds	r24, 0x0150
+     dde:	90 91 51 01 	lds	r25, 0x0151
+     de2:	8c 0f       	add	r24, r28
+     de4:	9d 1f       	adc	r25, r29
+     de6:	90 93 51 01 	sts	0x0151, r25
+     dea:	80 93 50 01 	sts	0x0150, r24
+     dee:	08 c0       	rjmp	.+16     	; 0xe00 <parse_command+0x31a>
           }
           pos_report();
           break;
           
         case SETZERO:
           plate_pos_x = 0;
-     de4:	10 92 4f 01 	sts	0x014F, r1
-     de8:	10 92 4e 01 	sts	0x014E, r1
+     df0:	10 92 4f 01 	sts	0x014F, r1
+     df4:	10 92 4e 01 	sts	0x014E, r1
           plate_pos_y = 0;
-     dec:	10 92 51 01 	sts	0x0151, r1
-     df0:	10 92 50 01 	sts	0x0150, r1
+     df8:	10 92 51 01 	sts	0x0151, r1
+     dfc:	10 92 50 01 	sts	0x0150, r1
           pos_report();
           break;
           
         case POSITION:
           pos_report();
-     df4:	5f de       	rcall	.-834    	; 0xab4 <pos_report>
+     e00:	5f de       	rcall	.-834    	; 0xac0 <pos_report>
           break;
-     df6:	17 c0       	rjmp	.+46     	; 0xe26 <parse_command+0x34c>
+     e02:	17 c0       	rjmp	.+46     	; 0xe32 <parse_command+0x34c>
       }
       
       
       
     } else { // queue command
       if( cmdPos == 0 ){
-     df8:	80 91 6d 02 	lds	r24, 0x026D
-     dfc:	88 23       	and	r24, r24
-     dfe:	19 f4       	brne	.+6      	; 0xe06 <parse_command+0x32c>
+     e04:	80 91 6d 02 	lds	r24, 0x026D
+     e08:	88 23       	and	r24, r24
+     e0a:	19 f4       	brne	.+6      	; 0xe12 <parse_command+0x32c>
         uart_puts("\r\n$ ");
-     e00:	83 e2       	ldi	r24, 0x23	; 35
-     e02:	91 e0       	ldi	r25, 0x01	; 1
-     e04:	e7 dc       	rcall	.-1586   	; 0x7d4 <uart_puts>
-     e06:	80 91 6d 02 	lds	r24, 0x026D
+     e0c:	83 e2       	ldi	r24, 0x23	; 35
+     e0e:	91 e0       	ldi	r25, 0x01	; 1
+     e10:	e1 dc       	rcall	.-1598   	; 0x7d4 <uart_puts>
+     e12:	80 91 6d 02 	lds	r24, 0x026D
       }
       
       if( byte == 8 ){ // backspace
-     e0a:	18 30       	cpi	r17, 0x08	; 8
-     e0c:	11 f4       	brne	.+4      	; 0xe12 <parse_command+0x338>
+     e16:	18 30       	cpi	r17, 0x08	; 8
+     e18:	11 f4       	brne	.+4      	; 0xe1e <parse_command+0x338>
         cmdPos--;
-     e0e:	81 50       	subi	r24, 0x01	; 1
-     e10:	06 c0       	rjmp	.+12     	; 0xe1e <parse_command+0x344>
+     e1a:	81 50       	subi	r24, 0x01	; 1
+     e1c:	06 c0       	rjmp	.+12     	; 0xe2a <parse_command+0x344>
       } else {
         cmdbuffer[cmdPos++] = byte;
-     e12:	e8 2f       	mov	r30, r24
-     e14:	f0 e0       	ldi	r31, 0x00	; 0
-     e16:	ee 57       	subi	r30, 0x7E	; 126
-     e18:	fd 4f       	sbci	r31, 0xFD	; 253
-     e1a:	10 83       	st	Z, r17
-     e1c:	8f 5f       	subi	r24, 0xFF	; 255
-     e1e:	80 93 6d 02 	sts	0x026D, r24
+     e1e:	e8 2f       	mov	r30, r24
+     e20:	f0 e0       	ldi	r31, 0x00	; 0
+     e22:	ee 57       	subi	r30, 0x7E	; 126
+     e24:	fd 4f       	sbci	r31, 0xFD	; 253
+     e26:	10 83       	st	Z, r17
+     e28:	8f 5f       	subi	r24, 0xFF	; 255
+     e2a:	80 93 6d 02 	sts	0x026D, r24
       }
       uart_putc(byte);
-     e22:	81 2f       	mov	r24, r17
-     e24:	cf dc       	rcall	.-1634   	; 0x7c4 <uart_putc>
+     e2e:	81 2f       	mov	r24, r17
+     e30:	c9 dc       	rcall	.-1646   	; 0x7c4 <uart_putc>
       
 
     }
   }
 }
-     e26:	df 91       	pop	r29
-     e28:	cf 91       	pop	r28
-     e2a:	1f 91       	pop	r17
-     e2c:	0f 91       	pop	r16
-     e2e:	ff 90       	pop	r15
-     e30:	ef 90       	pop	r14
-     e32:	df 90       	pop	r13
-     e34:	cf 90       	pop	r12
-     e36:	08 95       	ret
+     e32:	df 91       	pop	r29
+     e34:	cf 91       	pop	r28
+     e36:	1f 91       	pop	r17
+     e38:	0f 91       	pop	r16
+     e3a:	ff 90       	pop	r15
+     e3c:	ef 90       	pop	r14
+     e3e:	df 90       	pop	r13
+     e40:	cf 90       	pop	r12
+     e42:	08 95       	ret
 
-00000e38 <main>:
+00000e44 <main>:
 
 int main(void)
 {
-     e38:	0f 93       	push	r16
-     e3a:	1f 93       	push	r17
-     e3c:	df 93       	push	r29
-     e3e:	cf 93       	push	r28
-     e40:	0f 92       	push	r0
-     e42:	cd b7       	in	r28, 0x3d	; 61
-     e44:	de b7       	in	r29, 0x3e	; 62
+     e44:	0f 93       	push	r16
+     e46:	1f 93       	push	r17
+     e48:	df 93       	push	r29
+     e4a:	cf 93       	push	r28
+     e4c:	0f 92       	push	r0
+     e4e:	cd b7       	in	r28, 0x3d	; 61
+     e50:	de b7       	in	r29, 0x3e	; 62
  
   init_motors();
-     e46:	82 dd       	rcall	.-1276   	; 0x94c <init_motors>
+     e52:	7c dd       	rcall	.-1288   	; 0x94c <init_motors>
   
   char dummy;
   uint8_t field_val = 0;
   SetupHardware();
-     e48:	0e dc       	rcall	.-2020   	; 0x666 <SetupHardware>
+     e54:	08 dc       	rcall	.-2032   	; 0x666 <SetupHardware>
 
 
 
   RingBuffer_InitBuffer(&USBtoUSART_Buffer, USBtoUSART_Buffer_Data, sizeof(USBtoUSART_Buffer_Data));
-     e4a:	82 e5       	ldi	r24, 0x52	; 82
-     e4c:	91 e0       	ldi	r25, 0x01	; 1
-     e4e:	6e e5       	ldi	r22, 0x5E	; 94
-     e50:	71 e0       	ldi	r23, 0x01	; 1
-     e52:	37 da       	rcall	.-2962   	; 0x2c2 <RingBuffer_InitBuffer.clone.0>
+     e56:	82 e5       	ldi	r24, 0x52	; 82
+     e58:	91 e0       	ldi	r25, 0x01	; 1
+     e5a:	6e e5       	ldi	r22, 0x5E	; 94
+     e5c:	71 e0       	ldi	r23, 0x01	; 1
+     e5e:	31 da       	rcall	.-2974   	; 0x2c2 <RingBuffer_InitBuffer.clone.0>
   RingBuffer_InitBuffer(&USARTtoUSB_Buffer, USARTtoUSB_Buffer_Data, sizeof(USARTtoUSB_Buffer_Data));
-     e54:	8e ed       	ldi	r24, 0xDE	; 222
-     e56:	91 e0       	ldi	r25, 0x01	; 1
-     e58:	6a ee       	ldi	r22, 0xEA	; 234
-     e5a:	71 e0       	ldi	r23, 0x01	; 1
-     e5c:	32 da       	rcall	.-2972   	; 0x2c2 <RingBuffer_InitBuffer.clone.0>
+     e60:	8e ed       	ldi	r24, 0xDE	; 222
+     e62:	91 e0       	ldi	r25, 0x01	; 1
+     e64:	6a ee       	ldi	r22, 0xEA	; 234
+     e66:	71 e0       	ldi	r23, 0x01	; 1
+     e68:	2c da       	rcall	.-2984   	; 0x2c2 <RingBuffer_InitBuffer.clone.0>
 			static inline void GlobalInterruptEnable(void)
 			{
 				GCC_MEMORY_BARRIER();
 
 				#if (ARCH == ARCH_AVR8)
 				sei();
-     e5e:	78 94       	sei
+     e6a:	78 94       	sei
 
 //   LEDs_SetAllLEDs(LEDMASK_USB_NOTREADY);
   GlobalInterruptEnable();
 
   touchpad_init(); // you need to call this to setup the I/O pin!
-     e60:	72 db       	rcall	.-2332   	; 0x546 <touchpad_init>
-     e62:	2f ef       	ldi	r18, 0xFF	; 255
-     e64:	39 e6       	ldi	r19, 0x69	; 105
-     e66:	48 e1       	ldi	r20, 0x18	; 24
-     e68:	21 50       	subi	r18, 0x01	; 1
-     e6a:	30 40       	sbci	r19, 0x00	; 0
-     e6c:	40 40       	sbci	r20, 0x00	; 0
-     e6e:	e1 f7       	brne	.-8      	; 0xe68 <main+0x30>
-     e70:	00 c0       	rjmp	.+0      	; 0xe72 <main+0x3a>
-     e72:	00 00       	nop
+     e6c:	6c db       	rcall	.-2344   	; 0x546 <touchpad_init>
+     e6e:	8f ef       	ldi	r24, 0xFF	; 255
+     e70:	99 e6       	ldi	r25, 0x69	; 105
+     e72:	a8 e1       	ldi	r26, 0x18	; 24
+     e74:	81 50       	subi	r24, 0x01	; 1
+     e76:	90 40       	sbci	r25, 0x00	; 0
+     e78:	a0 40       	sbci	r26, 0x00	; 0
+     e7a:	e1 f7       	brne	.-8      	; 0xe74 <main+0x30>
+     e7c:	00 c0       	rjmp	.+0      	; 0xe7e <main+0x3a>
+     e7e:	00 00       	nop
   _delay_ms(500);
   sei();
-     e74:	78 94       	sei
+     e80:	78 94       	sei
   uint16_t loopcounter=0;
 
 
 
 //   uart_puts("you selected the relative position demo modus:\n\r");
   touchpad_set_rel_mode_100dpi();// use touchpad in relative mode
-     e76:	78 db       	rcall	.-2320   	; 0x568 <touchpad_set_rel_mode_100dpi>
+     e82:	72 db       	rcall	.-2332   	; 0x568 <touchpad_set_rel_mode_100dpi>
 //  touchpad_set_rel_mode_200dpi(); // uncomment this line if you want double resolution
   int16_t x, y = 0;
   int8_t dx, dy = 0;
   uint8_t busy = 0, last_busy = 0;
-     e78:	10 e0       	ldi	r17, 0x00	; 0
+     e84:	10 e0       	ldi	r17, 0x00	; 0
+     e86:	01 c0       	rjmp	.+2      	; 0xe8a <main+0x46>
+    }
+  }
+}
+
+int main(void)
+{
+     e88:	18 2f       	mov	r17, r24
+  int8_t dx, dy = 0;
+  uint8_t busy = 0, last_busy = 0;
 
   while (1) {
 
     Usb2SerialTask();
-     e7a:	aa db       	rcall	.-2220   	; 0x5d0 <Usb2SerialTask>
+     e8a:	a2 db       	rcall	.-2236   	; 0x5d0 <Usb2SerialTask>
 //     loopcounter++;
 //     if(loopcounter<2000) {
 //       continue;
 //     }
 //     loopcounter=0;
     parse_command(); // read data from virtual comport
-     e7c:	2e de       	rcall	.-932    	; 0xada <parse_command>
+     e8c:	2c de       	rcall	.-936    	; 0xae6 <parse_command>
     touchpad_read(); // read data from touchpad
-     e7e:	6b db       	rcall	.-2346   	; 0x556 <touchpad_read>
+     e8e:	63 db       	rcall	.-2362   	; 0x556 <touchpad_read>
 
-    dx = delta_x();// returns the amount your finger has moved in x direction since last readout
-     e80:	97 db       	rcall	.-2258   	; 0x5b0 <delta_x>
-     e82:	08 2f       	mov	r16, r24
-    dy = delta_y();// returns the amount your finger has moved in y direction since last readout
-     e84:	85 db       	rcall	.-2294   	; 0x590 <delta_y>
+    dx = -delta_x();// returns the amount your finger has moved in x direction since last readout
+     e90:	8f db       	rcall	.-2274   	; 0x5b0 <delta_x>
+     e92:	08 2f       	mov	r16, r24
+    dy = -delta_y();// returns the amount your finger has moved in y direction since last readout
+     e94:	7d db       	rcall	.-2310   	; 0x590 <delta_y>
+//     }
+//     loopcounter=0;
+    parse_command(); // read data from virtual comport
+    touchpad_read(); // read data from touchpad
+
+    dx = -delta_x();// returns the amount your finger has moved in x direction since last readout
+     e96:	01 95       	neg	r16
+    dy = -delta_y();// returns the amount your finger has moved in y direction since last readout
 
     // increment/decrement some dummy variables with the
 
     plate_pos_x += dx;
-     e86:	40 2f       	mov	r20, r16
-     e88:	55 27       	eor	r21, r21
-     e8a:	47 fd       	sbrc	r20, 7
-     e8c:	50 95       	com	r21
-     e8e:	20 91 4e 01 	lds	r18, 0x014E
-     e92:	30 91 4f 01 	lds	r19, 0x014F
-     e96:	24 0f       	add	r18, r20
-     e98:	35 1f       	adc	r19, r21
-     e9a:	30 93 4f 01 	sts	0x014F, r19
-     e9e:	20 93 4e 01 	sts	0x014E, r18
+     e98:	40 2f       	mov	r20, r16
+     e9a:	55 27       	eor	r21, r21
+     e9c:	47 fd       	sbrc	r20, 7
+     e9e:	50 95       	com	r21
+     ea0:	20 91 4e 01 	lds	r18, 0x014E
+     ea4:	30 91 4f 01 	lds	r19, 0x014F
+     ea8:	24 0f       	add	r18, r20
+     eaa:	35 1f       	adc	r19, r21
+     eac:	30 93 4f 01 	sts	0x014F, r19
+     eb0:	20 93 4e 01 	sts	0x014E, r18
+//     loopcounter=0;
+    parse_command(); // read data from virtual comport
+    touchpad_read(); // read data from touchpad
+
+    dx = -delta_x();// returns the amount your finger has moved in x direction since last readout
+    dy = -delta_y();// returns the amount your finger has moved in y direction since last readout
+     eb4:	81 95       	neg	r24
+
+    // increment/decrement some dummy variables with the
+
+    plate_pos_x += dx;
     plate_pos_y += dy;
-     ea2:	68 2f       	mov	r22, r24
-     ea4:	77 27       	eor	r23, r23
-     ea6:	67 fd       	sbrc	r22, 7
-     ea8:	70 95       	com	r23
-     eaa:	80 91 50 01 	lds	r24, 0x0150
-     eae:	90 91 51 01 	lds	r25, 0x0151
-     eb2:	86 0f       	add	r24, r22
-     eb4:	97 1f       	adc	r25, r23
-     eb6:	90 93 51 01 	sts	0x0151, r25
-     eba:	80 93 50 01 	sts	0x0150, r24
+     eb6:	68 2f       	mov	r22, r24
+     eb8:	77 27       	eor	r23, r23
+     eba:	67 fd       	sbrc	r22, 7
+     ebc:	70 95       	com	r23
+     ebe:	80 91 50 01 	lds	r24, 0x0150
+     ec2:	90 91 51 01 	lds	r25, 0x0151
+     ec6:	86 0f       	add	r24, r22
+     ec8:	97 1f       	adc	r25, r23
+     eca:	90 93 51 01 	sts	0x0151, r25
+     ece:	80 93 50 01 	sts	0x0150, r24
     
     
     last_busy = busy;
     busy = move_plate(dx,dy);
-     ebe:	ca 01       	movw	r24, r20
-     ec0:	84 dd       	rcall	.-1272   	; 0x9ca <move_plate>
+     ed2:	ca 01       	movw	r24, r20
+     ed4:	7a dd       	rcall	.-1292   	; 0x9ca <move_plate>
     
     
     if (last_busy && !(busy)){
-     ec2:	11 23       	and	r17, r17
-     ec4:	29 f0       	breq	.+10     	; 0xed0 <main+0x98>
-     ec6:	88 23       	and	r24, r24
-     ec8:	19 f4       	brne	.+6      	; 0xed0 <main+0x98>
+     ed6:	11 23       	and	r17, r17
+     ed8:	b9 f2       	breq	.-82     	; 0xe88 <main+0x44>
+     eda:	88 23       	and	r24, r24
+     edc:	a9 f6       	brne	.-86     	; 0xe88 <main+0x44>
       pos_report();
-     eca:	89 83       	std	Y+1, r24	; 0x01
-     ecc:	f3 dd       	rcall	.-1050   	; 0xab4 <pos_report>
-     ece:	89 81       	ldd	r24, Y+1	; 0x01
-     ed0:	2f ef       	ldi	r18, 0xFF	; 255
-     ed2:	39 ef       	ldi	r19, 0xF9	; 249
-     ed4:	40 e0       	ldi	r20, 0x00	; 0
-     ed6:	21 50       	subi	r18, 0x01	; 1
-     ed8:	30 40       	sbci	r19, 0x00	; 0
-     eda:	40 40       	sbci	r20, 0x00	; 0
-     edc:	e1 f7       	brne	.-8      	; 0xed6 <main+0x9e>
-     ede:	00 c0       	rjmp	.+0      	; 0xee0 <main+0xa8>
-     ee0:	00 00       	nop
-    plate_pos_x += dx;
-    plate_pos_y += dy;
-    
-    
-    last_busy = busy;
-    busy = move_plate(dx,dy);
-     ee2:	18 2f       	mov	r17, r24
-     ee4:	ca cf       	rjmp	.-108    	; 0xe7a <main+0x42>
+     ede:	89 83       	std	Y+1, r24	; 0x01
+     ee0:	ef dd       	rcall	.-1058   	; 0xac0 <pos_report>
+     ee2:	89 81       	ldd	r24, Y+1	; 0x01
+     ee4:	d1 cf       	rjmp	.-94     	; 0xe88 <main+0x44>
 
 00000ee6 <CALLBACK_USB_GetDescriptor>:
 	const uint8_t  DescriptorNumber = (wValue & 0xFF);
