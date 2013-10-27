@@ -660,9 +660,9 @@ int main(void)
 
   while (1) {
     
-//     set_led0(sw0_state());
-//     set_led1(sw1_state());
-//     set_led2(sw2_state());
+    set_led0(sw0_state());
+    set_led1(sw1_state());
+    set_led2(sw2_state());
 
     Usb2SerialTask();
 //     loopcounter++;

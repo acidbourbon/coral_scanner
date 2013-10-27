@@ -42,6 +42,7 @@
 #include "TM1001A.c"
 // #include "rfm70.c"
 #include "pins.h"
+#include "leds.c"
 
 int16_t plate_pos_x = 0,plate_pos_y = 0;
 char stringbuffer[16];
@@ -624,6 +625,9 @@ int main(void)
 {
  
   init_motors();
+  init_leds();
+  init_sw();
+
   
   char dummy;
   uint8_t field_val = 0;
@@ -656,6 +660,10 @@ int main(void)
   uint8_t busy = 0, last_busy = 0;
 
   while (1) {
+    
+    set_led0(sw0_state());
+    set_led1(sw1_state());
+    set_led2(sw2_state());
 
     Usb2SerialTask();
 //     loopcounter++;
