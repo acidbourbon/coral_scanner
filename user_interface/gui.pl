@@ -6,6 +6,8 @@ use Gtk2 '-init';
 use constant TRUE  => 1;
 use constant FALSE => 0;
 
+my $save_dir = "./saved";
+
 my $window = Gtk2::Window->new;
 $window->set_title ('FPGA based pulse width analyzer');
 $window->signal_connect (destroy => sub { Gtk2->main_quit; });
@@ -17,6 +19,16 @@ $window->add($vbox);
 my $actions_frame = Gtk2::Frame->new('Actions');
 $vbox->pack_start($actions_frame, TRUE, TRUE, 0);
 $actions_frame->set_border_width(3);
+
+
+my $save_frame = Gtk2::Frame->new('Save');
+$vbox->pack_start($save_frame, TRUE, TRUE, 0);
+$actions_frame->set_border_width(3);
+
+my $save_frame_hbox = Gtk2::HBox->new(FALSE, 6);
+$save_frame->add($save_frame_hbox);
+$save_frame_hbox->set_border_width(3);
+
 
 my $plot_frame = Gtk2::Frame->new('Plot');
 $vbox->pack_start($plot_frame, TRUE, TRUE, 0);
@@ -47,6 +59,9 @@ my $windowLength_entry = Gtk2::Entry->new;
 $windowLength_entry->set_text('100us');
 $hbox->pack_start($windowLength_entry, FALSE, FALSE, 0);
 
+
+
+
 my $setWindowLength_button = Gtk2::Button->new('_Set window length');
 $hbox->pack_start($setWindowLength_button, FALSE, FALSE, 0);
 
@@ -59,6 +74,14 @@ $quit_button->signal_connect( clicked => sub {
     });
 
 
+
+
+my $filename_entry = Gtk2::Entry->new;
+$filename_entry->set_text('last_aquisition');
+$save_frame_hbox->pack_start($filename_entry, FALSE, FALSE, 0);
+
+my $save_button = Gtk2::Button->new('_Save data and plot');
+$save_frame_hbox->pack_start($save_button, FALSE, FALSE, 0);
 
 
 
@@ -102,6 +125,16 @@ $clear_button->signal_connect( clicked => sub {
   
 });
 
+$save_button->signal_connect( clicked => sub {
+  my $filename = $filename_entry->get_text();
+  unless( -e $save_dir ) {
+    execute("mkdir -p $save_dir")
+  }
+  execute("cp out.dat $save_dir/$filename.dat");
+  execute("cp plot.png $save_dir/$filename.png");
+  
+});
+  
 $setWindowLength_button->signal_connect( clicked => sub {
   my $windowLength = $windowLength_entry->get_text();
   execute("./analyzer.pl --window $windowLength");
