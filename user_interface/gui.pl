@@ -62,7 +62,7 @@ $quit_button->signal_connect( clicked => sub {
 
 
 
-my $image = Gtk2::Image->new_from_file ("plot.png");
+my $image = Gtk2::Image->new_from_file ("clear.png");
 # $vbox->pack_start($image, TRUE, TRUE, 0);
 $plot_frame->add($image);
 
@@ -91,18 +91,14 @@ $plot_button->signal_connect( clicked => sub {
 
 #   $label->set_text(qx%echo blah%);
   execute("./plot.sh");
-  $plot_frame->remove($image);
-  $image->clear;
-  $image = Gtk2::Image->new_from_file ("plot.png");
-  $plot_frame->add($image);
-  $window->show_all;
+  show_image("plot.png");
   
 });
 
 $clear_button->signal_connect( clicked => sub {
 
   execute("./analyzer.pl --clear");
-  $image->clear;
+  show_image("clear.png");
   
 });
 
@@ -111,6 +107,7 @@ $setWindowLength_button->signal_connect( clicked => sub {
   execute("./analyzer.pl --window $windowLength");
 #   $label->set_text($windowLength_entry->get_text());
   execute("./analyzer.pl --clear");
+  show_image("clear.png");
   
 });
 
@@ -121,6 +118,15 @@ sub execute {
   system($command);  
   print "\n\n";
   
+}
+
+sub show_image{
+  my $filename = shift;
+  $plot_frame->remove($image);
+  $image->clear;
+  $image = Gtk2::Image->new_from_file($filename);
+  $plot_frame->add($image);
+  $window->show_all;
 }
 
 
