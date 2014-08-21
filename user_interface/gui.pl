@@ -34,7 +34,7 @@ $hbox->set_border_width(3);
 ##################################################
 
 my $inc_button = Gtk2::Button->new('_Click Me');
-$hbox->pack_start($inc_button, FALSE, FALSE, 0);
+# $hbox->pack_start($inc_button, FALSE, FALSE, 0);
 my $count = 1;
 
 my $plot_button = Gtk2::Button->new('_Plot');
@@ -43,11 +43,22 @@ $hbox->pack_start($plot_button, FALSE, FALSE, 0);
 my $clear_button = Gtk2::Button->new('_Clear');
 $hbox->pack_start($clear_button, FALSE, FALSE, 0);
 
+my $windowLength_entry = Gtk2::Entry->new;
+$hbox->pack_start($windowLength_entry, FALSE, FALSE, 0);
+
+my $setWindowLength_button = Gtk2::Button->new('_Set window length');
+$hbox->pack_start($setWindowLength_button, FALSE, FALSE, 0);
+
+
+
 my $quit_button = Gtk2::Button->new('_Quit');
-$hbox->pack_start($quit_button, FALSE, FALSE, 0);
+# $hbox->pack_start($quit_button, FALSE, FALSE, 0);
 $quit_button->signal_connect( clicked => sub {
-		Gtk2->main_quit;
-	});
+            Gtk2->main_quit;
+    });
+
+
+
 
 
 my $image = Gtk2::Image->new_from_file ("plot.png");
@@ -57,8 +68,8 @@ $plot_frame->add($image);
 
 
 
-# my $label = Gtk2::Label->new('Clicked 0 times.');
-# $vbox->pack_start($label, TRUE, TRUE, 0);
+my $label = Gtk2::Label->new('... debug out');
+$vbox->pack_start($label, TRUE, TRUE, 0);
 
 
 
@@ -93,7 +104,12 @@ $clear_button->signal_connect( clicked => sub {
   
 });
 
-
+$setWindowLength_button->signal_connect( clicked => sub {
+  my $windowLength = $windowLength_entry->get_text();
+  execute("./analyzer.pl --window $windowLength");
+#   $label->set_text($windowLength_entry->get_text());
+  
+});
 
 
 sub execute {
