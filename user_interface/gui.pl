@@ -43,7 +43,7 @@ $hbox->pack_start($plot_button, FALSE, FALSE, 0);
 my $clear_button = Gtk2::Button->new('_Clear');
 $hbox->pack_start($clear_button, FALSE, FALSE, 0);
 
-my $windowLength_entry = Gtk2::Entry->new;
+my $windowLength_entry = Gtk2::Entry->new('100us');
 $hbox->pack_start($windowLength_entry, FALSE, FALSE, 0);
 
 my $setWindowLength_button = Gtk2::Button->new('_Set window length');
@@ -101,6 +101,7 @@ $plot_button->signal_connect( clicked => sub {
 $clear_button->signal_connect( clicked => sub {
 
   execute("./analyzer.pl --clear");
+  $image->clear;
   
 });
 
@@ -108,6 +109,7 @@ $setWindowLength_button->signal_connect( clicked => sub {
   my $windowLength = $windowLength_entry->get_text();
   execute("./analyzer.pl --window $windowLength");
 #   $label->set_text($windowLength_entry->get_text());
+  execute("./analyzer.pl --clear");
   
 });
 
