@@ -20,9 +20,6 @@ my $opt_command;
 my $read;
 my $opt_help;
 my $write;
-my $clear;
-my $clkdiv;
-my $window;
 
 
 my $ser_dev = "/dev/ttyUSB0";
@@ -34,14 +31,36 @@ GetOptions (  'h|help'      => \$opt_help,
               'tty=s'     => \$ser_dev,
               'baud=s'    => \$baudrate,
               'r|read=s'  => \$read,
-              'w|write=s'  => \$write,
-              'c|clear'   => \$clear,
-              'd|divider=s' => \$clkdiv,
-              'window=s'  => \$window
+              'w|write=s'  => \$write
             );
 
 
 init_port();
+
+
+sub print_help{
+print <<EOF;  
+simple_io.pl (-r <addr>|-w <addr>_<val>) [OPTIONS]
+
+Simple_io is a tiny utility that allows easy setting and reading
+of registers in an FPGA project with Jan Michel's serial interface
+register control.
+
+options:
+
+-h, --help                print this help message
+-r <addr>                 read from register <addr> (0-255)
+-w <addr>_<val>           write value <val> (32 bit integer) to register <addr> (0-255)
+
+--baud <baudrate>         set baudrate for serial interface (default = 115200)
+--tty  <device>           set serial interface device (default = /dev/ttyUSB0)
+
+2014 by M. Wiebusch (m.wiebusch\@gsi.de)          
+  
+EOF
+exit;
+}
+
 
 
 if (defined ($read)) {
@@ -52,40 +71,10 @@ if (defined ($read)) {
   exit;
 }
 
-if (defined($clear)){
-  $write = '129_1';
-}
-
-
-if (defined($window)){
-  my $tunit=1e-3;
-  if($window =~ m/ms/){
-    $tunit=1e-3;
-  } elsif($window =~ m/us/){
-    $tunit=1e-6;
-  } elsif($window =~ m/ns/){
-    $tunit=1e-9;
-  } elsif($window =~ m/s/){
-    $tunit=1;
-  }
-  
-  $window =~ m/([\d\.]+)/;
-  my $number = $1;
-  printf("requested window width: %e s\n",$number*$tunit);
-  my $FPGAclk=133000000;
-  my $analyzerBins=128;
-  $clkdiv = floor(($number*$tunit)/$analyzerBins/(1/$FPGAclk)); 
-
-}
-
-if (defined($clkdiv)){
-  $write = "128_$clkdiv";
-}
-
 if (defined ($write)) {
   
   unless( $write =~ m/(\d+)_(\d+)/ ) {
-    die "input parameter: analyzer -w 127_1234\n";
+    die "wrong input format\nusage: simple_io.pl -w 127_1234\n";
   } 
   
   my $addr = $1;
@@ -104,14 +93,7 @@ if (defined ($write)) {
 }
 
 
-for (my $i=0;$i<128;$i++){
-  my $val = communicate("R".chr($i));
-#   printf ("length of response: %d \n",length($rstring));
-  printf("%d\t%d\n",$i,$val);
-#   printf("addr %d:\t%d.%d.%d.%d\n",$i,$byte3,$byte2,$byte1,$byte0);
-#       Time::HiRes::sleep(.01);
-}
-
+print_help();
 
 
 
@@ -185,6 +167,7 @@ sub init_port {
   $port->parity("none"); 
   $port->databits(8); 
   $port->stopbits(1); 
+#   $port->handshake("xoff"); 
   $port->handshake("none"); 
   $port->write_settings;
 
