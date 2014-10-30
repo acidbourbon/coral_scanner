@@ -164,14 +164,14 @@ sub signal_range { # determine the range and the position the signal/noise in te
     %options,
     counter_addr => $counter_addr,
     threshold_addr => $threshold_addr,
-    boundary => "upper"
+    boundary => "upper",
     verbose => $sub_verbose);
   
   $range->{lower} = $self->find_baseline(
     %options,
     counter_addr => $counter_addr,
     threshold_addr => $threshold_addr,
-    boundary => "lower"
+    boundary => "lower",
     verbose => $sub_verbose);
   
   $range->{range}->{width} = $range->{upper}->{position} - $range->{lower}->{position};
