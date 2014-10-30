@@ -4,15 +4,11 @@ package this;
 
 =head1 NAME
 
-pmt_ro - configure and read out the coral 
+pmt_ro - configure and read out the photomultiplier hardware
 
 =head1 SYNOPSIS
 
-    use regio;
-    my $regio = regio->new(tty => "/dev/ttyUSB0", baudrate => "115200");
-    
-    my $value = $regio->read($addr);
-    $regio->write($addr,$value);
+./pmt_ro action=signal_range channel=(signal|veto)
 
 =head1 DESCRIPTION
 
@@ -159,17 +155,24 @@ sub signal_range { # determine the range and the position the signal/noise in te
   
   my $range = {};
   
+  my $sub_verbose = 0;
+  if($verbose > 0){
+    $sub_verbose = $verbose - 1;
+  }
+  
   $range->{upper} = $self->find_baseline(
     %options,
     counter_addr => $counter_addr,
     threshold_addr => $threshold_addr,
-    boundary => "upper" );
+    boundary => "upper"
+    verbose => $sub_verbose);
   
   $range->{lower} = $self->find_baseline(
     %options,
     counter_addr => $counter_addr,
     threshold_addr => $threshold_addr,
-    boundary => "lower" );
+    boundary => "lower"
+    verbose => $sub_verbose);
   
   $range->{range}->{width} = $range->{upper}->{position} - $range->{lower}->{position};
   $range->{range}->{uncertainty} = $range->{upper}->{uncertainty} + $range->{lower}->{uncertainty};
