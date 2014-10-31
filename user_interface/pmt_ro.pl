@@ -48,7 +48,7 @@ use CGI::Carp qw(fatalsToBrowser);
 use Data::Dumper;
 use Pod::Usage;
 use regio;
-use manage_settings;
+# use manage_settings;
 # use Switch;
 
 
