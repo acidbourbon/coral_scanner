@@ -128,11 +128,12 @@ sub communicate {
   }
   
   if($ack){
-    my $byte3 = ord(substr($rstring,0,1));
-    my $byte2 = ord(substr($rstring,1,1));
-    my $byte1 = ord(substr($rstring,2,1));
-    my $byte0 = ord(substr($rstring,3,1));
-    my $val = (($byte3<<24)|($byte2<<16)|($byte1<<8)|$byte0);
+#     my $byte3 = ord(substr($rstring,0,1));
+#     my $byte2 = ord(substr($rstring,1,1));
+#     my $byte1 = ord(substr($rstring,2,1));
+#     my $byte0 = ord(substr($rstring,3,1));
+#     my $val = (($byte3<<24)|($byte2<<16)|($byte1<<8)|$byte0);
+    my $val = unpack('l',reverse pack('a4',substr($rstring,0,4)));
     return $val;
   } else {
     print "no answer\n" if $self->{verbose};

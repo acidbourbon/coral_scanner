@@ -8,7 +8,20 @@ pmt_ro - configure and read out the photomultiplier hardware
 
 =head1 SYNOPSIS
 
-./pmt_ro action=signal_range channel=(signal|veto)
+automatic scan of signal range, can configure "integration time" of each step.
+
+/pmt_ro action=signal_range channel=(signal|veto) [delay=<delay in sec>]
+
+count on a specific channel for a specific time (default 1 sec)
+./pmt_ro.pl action=count channel=signal [delay=2.5]
+
+read from a register, either by name or by address
+./pmt_ro.pl action=read_register regName=signal_thresh
+
+./pmt_ro.pl action=read_register addr=21
+
+
+
 
 =head1 DESCRIPTION
 
@@ -105,7 +118,8 @@ sub main {
     read_register => 1,
     write_register => 1,
     find_baseline => 1,
-    signal_range => 1
+    signal_range => 1,
+    count => 1
   };
   
   # if method exists, execute it, if not complain and show help message
@@ -116,7 +130,7 @@ sub main {
     my $return = $self->$action(%$args);
     # does it return anything?
     if(defined($return)){ # we get a return value
-      if(ref($return) eq "SCALAR"){ # just print it if it is a scalar
+      if(ref(\$return) eq "SCALAR"){ # just print it if it is a scalar
         print "$return\n";
       } else { # use Data::Dumper to display a hash
         print "method returns a hash:\n";
@@ -127,6 +141,42 @@ sub main {
     print "$action is not a valid action!\n\n";
     $self->help(1);
   }
+}
+
+sub count { # count for a given time on a given channel
+  # return number of counts
+  my $self = shift;
+  my %options = @_;
+  
+  my $channel = $options{channel}; # can be "signal" or "veto" or "net"
+  my $delay   = $options{delay} || 1;
+  
+  my $counter_addr;
+  my $threshold_addr;
+  
+  if( $channel eq "signal" ){
+    $counter_addr = $self->{regaddr_lookup}->{signal_counter};
+    $threshold_addr = $self->{regaddr_lookup}->{signal_thresh};
+  } elsif ( $channel eq "veto" ){
+    $counter_addr = $self->{regaddr_lookup}->{veto_counter};
+    $threshold_addr = $self->{regaddr_lookup}->{veto_thresh};
+  } elsif ( $channel eq "net" ){
+    $counter_addr = $self->{regaddr_lookup}->{net_counter};
+    $threshold_addr = $self->{regaddr_lookup}->{net_thresh};
+  } else {
+    die "$channel is not a valid channel!\n possible channels are \"signal\",\"veto\" and \"net\"\n!";
+  }
+  
+  $self->{regio}->write($self->{regaddr_lookup}->{acquisition},0); # stop acquisition
+  $self->{regio}->read($self->{regaddr_lookup}->{reset_counter}); # reset counter
+  $self->{regio}->write($self->{regaddr_lookup}->{acquisition},1); # start acquisition
+  Time::HiRes::sleep($delay); # let the counter count
+  $self->{regio}->write($self->{regaddr_lookup}->{acquisition},0); # stop acquisition
+  my $counts = $self->{regio}->read($counter_addr); # read counter value
+  $self->{regio}->write($self->{regaddr_lookup}->{acquisition},1); # start acquisition
+  
+  die "Padiwa does not answer!\n" unless defined($counts);
+  return $counts;
 }
 
 sub signal_range { # determine the range and the position the signal/noise in terms of
