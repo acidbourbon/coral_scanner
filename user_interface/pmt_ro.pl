@@ -48,6 +48,7 @@ use CGI::Carp qw(fatalsToBrowser);
 use Data::Dumper;
 use Pod::Usage;
 use regio;
+use manage_settings;
 # use Switch;
 
 
@@ -236,6 +237,8 @@ sub find_baseline {
     $self->{regio}->write($threshold_addr,$upper); # go to upper threshold
     Time::HiRes::sleep($delay); # let RC filter settle
     my $counts = $self->{regio}->read($counter_addr); # look if transition(s) happened
+    
+    die "Padiwa does not answer!\n" unless defined($counts);
     
     if( $i==0 and $counts==0){
       die "Something is very wrong! No transition was observed as the whole DAC range was covered!\n";
