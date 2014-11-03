@@ -60,6 +60,7 @@ use CGI ':standard';
 use CGI::Carp qw(fatalsToBrowser);
 use Data::Dumper;
 use Pod::Usage;
+use FileHandle;
 use regio;
 # use manage_settings;
 # use Switch;
@@ -103,7 +104,8 @@ sub new {
     tty => "/dev/ttyUSB0",
     baudrate => 115200,
     signal_zero => 0,
-    veto_zero => 0
+    veto_zero => 0,
+    is_calibrated => 0
   };
   
   $self->{settings} = {%{$self->{default_settings}}};
@@ -138,7 +140,11 @@ sub main {
     load_settings => 1,
     save_settings => 1,
     reset_settings => 1,
-    zero_calib => 1
+    zero_calib => 1,
+    signal_thresh => 1,
+    veto_thresh => 1,
+    spectral_scan => 1,
+    spectral_scan_onesided => 1
   };
   
   # if method exists, execute it, if not complain and show help message
@@ -162,6 +168,120 @@ sub main {
   }
 }
 
+
+sub spectral_scan {
+  my $self = shift;
+  my %options = @_;
+  
+  die "device zero offset calibration has to be performed first!\n
+  run subroutine zero_calib!\n" unless $self->{settings}->{is_calibrated};
+  
+  my $start=$options{start};
+  my $stop=$options{stop};
+  my $bins=$options{bins}||64;
+  my $delay=$options{delay}||1;
+  my $verbose=$options{verbose};
+  
+  my $spec_width = $stop-$start;
+  my $bin_width = $spec_width/$bins;
+  
+  my $counts;
+  my $bin_pos;
+  my $spectrum;
+  
+  print "#bin\t#bin_pos\t#counts\n" if $verbose;
+  for (my $i=0; $i<$bins; $i++){
+    $self->veto_thresh(value => floor($start+$bin_width*$i) );
+    $self->signal_thresh(value => floor($start+$bin_width*($i+1)) );
+    $bin_pos = floor($start+$bin_width*($i+0.5));
+    $counts = $self->count(channel => "net", delay => $delay);
+    $spectrum->{$i} = { 
+      counts => $counts,
+      bin_pos => $bin_pos
+    };
+    print "$i\t$bin_pos\t$counts\n" if $verbose;
+  }
+  return $spectrum;
+  
+}
+
+sub spectral_scan_onesided {
+  my $self = shift;
+  my %options = @_;
+  
+  die "device zero offset calibration has to be performed first!\n
+  run subroutine zero_calib!\n" unless $self->{settings}->{is_calibrated};
+  
+  my $start=$options{start};
+  my $stop=$options{stop};
+  my $bins=$options{bins}||64;
+  my $delay=$options{delay}||1;
+  my $verbose=$options{verbose};
+  my $tofile=$options{tofile};
+  
+  my $file = FileHandle->new("./test.dat", 'w');
+  
+  my $spec_width = $stop-$start;
+  my $bin_width = $spec_width/$bins;
+  
+  my $counts;
+  my $bin_pos;
+  my $spectrum;
+  
+  my $cumulation;
+  
+  print "#bin\t#bin_pos\t#counts\n" if $verbose;
+  for (my $i=0; $i<$bins; $i++){
+#     $self->veto_thresh(value => floor($start+$bin_width*$i) );
+    $self->signal_thresh(value => floor($start+$bin_width*$i) );
+    $bin_pos = floor($start+$bin_width*($i+0.5));
+    $counts = $self->count(channel => "signal", delay => $delay);
+    $spectrum->{$i} = { 
+      counts => $counts,
+      bin_pos => $bin_pos
+    };
+    print "$i\t$bin_pos\t$counts\n" if $verbose;
+    print $file "$i\t$bin_pos\t$counts\n";
+    
+  }
+  
+  $file->close();
+  return $spectrum;
+  
+}
+
+sub signal_thresh {
+  # reads or sets signal threshold
+  my $self = shift;
+  my %options = @_;
+  
+  my $value = $options{value};
+  
+  if($value){
+    #if value is given, write threshold
+    $self->write_register(regName => "signal_thresh", value => $value+$self->{settings}->{signal_zero});
+  } else {
+    #just read threshold
+    return $self->read_register(regName => "signal_thresh")-$self->{settings}->{signal_zero};
+  }
+}
+
+sub veto_thresh {
+  # reads or sets signal threshold
+  my $self = shift;
+  my %options = @_;
+  
+  my $value = $options{value};
+  
+  if($value){
+    #if value is given, write threshold
+    $self->write_register(regName => "veto_thresh", value => $value+$self->{settings}->{veto_zero});
+  } else {
+    #just read threshold
+    return $self->read_register(regName => "veto_thresh")-$self->{settings}->{veto_zero};
+  }
+}
+
 sub zero_calib {
   #calibrates the offset between both comparator inputs
   #please unplug signal input before executing this
@@ -182,14 +302,16 @@ sub zero_calib {
     channel => "signal",
     iterations => $iterations,
     verbose => $sub_verbose,
-    delay => $delay
+    delay => $delay,
+    use_zero_calib => 0 #ignore previous zero calibration values
   );
   
   my $veto_range = $self->signal_range( 
     channel => "veto",
     iterations => $iterations,
     verbose => $sub_verbose,
-    delay => $delay
+    delay => $delay,
+    use_zero_calib => 0 #ignore previous zero calibration values
   );
   
   $self->{settings}->{signal_zero} =
@@ -202,11 +324,12 @@ sub zero_calib {
     print "this procedure should be called when signal input is unplugged!\n";
     print "signal_zero: ".$self->{settings}->{signal_zero}."\n";
     print "veto_zero: ".$self->{settings}->{veto_zero}."\n";
-    print "values will be stored in settings file";
+    print "values will be stored in settings file\n";
   }
+  #TODO ... check if calibration was successful
+    # low signal range, etc ...
+  $self->{settings}->{is_calibrated} = 1; # let the world know that calibration was successful
   $self->save_settings();
-  
-  
 }
 
 sub count { # count for a given time on a given channel
@@ -250,6 +373,9 @@ sub signal_range { # determine the range and the position the signal/noise in te
   my $self = shift;
   my %options = @_;
   
+  my $use_zero_calib = 1;
+  $use_zero_calib = $options{use_zero_calib} if defined($options{use_zero_calib});
+  
   my $channel = $options{channel}; # can be "signal" or "veto"
   # options for find_baseline
     # delay (default 10 ms)
@@ -265,13 +391,16 @@ sub signal_range { # determine the range and the position the signal/noise in te
   
   my $counter_addr;
   my $threshold_addr;
+  my $zero_calib_offset;
   
   if( $channel eq "signal" ){
     $counter_addr = $self->{regaddr_lookup}->{signal_counter};
     $threshold_addr = $self->{regaddr_lookup}->{signal_thresh};
+    $zero_calib_offset = $self->{settings}->{signal_zero};
   } elsif ( $channel eq "veto" ){
     $counter_addr = $self->{regaddr_lookup}->{veto_counter};
     $threshold_addr = $self->{regaddr_lookup}->{veto_thresh};
+    $zero_calib_offset = $self->{settings}->{veto_zero};
   } else {
     die "$channel is not a valid channel!\n possible channels are \"signal\" and \"veto\"\n!";
   }
@@ -294,6 +423,11 @@ sub signal_range { # determine the range and the position the signal/noise in te
     boundary => "lower",
     verbose => $sub_verbose);
   
+  if ($use_zero_calib){
+    $range->{lower}->{position} = $range->{lower}->{position} - $zero_calib_offset;
+    $range->{upper}->{position} = $range->{upper}->{position} - $zero_calib_offset;
+  }
+  
   $range->{range}->{width} = $range->{upper}->{position} - $range->{lower}->{position};
   $range->{range}->{uncertainty} = $range->{upper}->{uncertainty} + $range->{lower}->{uncertainty};
   
@@ -308,6 +442,8 @@ sub signal_range { # determine the range and the position the signal/noise in te
     printf("upper signal/noise boundary: %d (%3.2f%%)\n",$upper,$upper/$range*100);
     printf("lower signal/noise boundary: %d (%3.2f%%)\n",$lower,$lower/$range*100);
     printf("signal/noise width: %d (%3.2f%%)\n",$width,$width/$range*100);
+    print("these values are zero calibration offset corrected!\n")
+      if $use_zero_calib;
     print "\n--------------------------\n";
   }
   
@@ -485,8 +621,8 @@ sub save_settings {
   my %options = @_;
   my $settings_file = $self->{misc}->{settings_file};
   
-  my $settings = { %{$self->{settings}}, %options};
-  lock_store($settings,$settings_file);
+  $self->{settings} = { %{$self->{settings}}, %options};
+  lock_store($self->{settings},$settings_file);
   return $self->{settings}
 }
 
