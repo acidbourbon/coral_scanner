@@ -64,6 +64,8 @@ use regio;
 # use manage_settings;
 # use Switch;
 
+use Storable qw(lock_store lock_retrieve);
+
 
 
 my $self = this->new();
@@ -93,6 +95,19 @@ sub new {
     DACrange => 65535
   };
   
+  $self->{misc} = {
+    settings_file => "./settings.dat"
+  };
+  
+  $self->{default_settings} = { # hard default settings
+    tty => "/dev/ttyUSB0",
+    baudrate => 115200,
+    signal_zero => 0,
+    veto_zero => 0
+  };
+  
+  $self->{settings} = {%{$self->{default_settings}}};
+  
   $self  = {
     %$self,
     %options
@@ -119,7 +134,11 @@ sub main {
     write_register => 1,
     find_baseline => 1,
     signal_range => 1,
-    count => 1
+    count => 1,
+    load_settings => 1,
+    save_settings => 1,
+    reset_settings => 1,
+    zero_calib => 1
   };
   
   # if method exists, execute it, if not complain and show help message
@@ -141,6 +160,53 @@ sub main {
     print "$action is not a valid action!\n\n";
     $self->help(1);
   }
+}
+
+sub zero_calib {
+  #calibrates the offset between both comparator inputs
+  #please unplug signal input before executing this
+  my $self = shift;
+  my %options = @_;
+  
+  my $iterations = $options{iterations} || 26;
+  my $verbose = $options{verbose};
+  my $delay = $options{delay} || 0.05;
+  my $sub_verbose = 0;
+  if($verbose){
+    if($verbose > 0){
+      $sub_verbose = $verbose - 1;
+    }
+  }
+  
+  my $signal_range = $self->signal_range( 
+    channel => "signal",
+    iterations => $iterations,
+    verbose => $sub_verbose,
+    delay => $delay
+  );
+  
+  my $veto_range = $self->signal_range( 
+    channel => "veto",
+    iterations => $iterations,
+    verbose => $sub_verbose,
+    delay => $delay
+  );
+  
+  $self->{settings}->{signal_zero} =
+    floor(($signal_range->{lower}->{position} + $signal_range->{upper}->{position})/2);
+    
+  $self->{settings}->{veto_zero} =
+    floor(($veto_range->{lower}->{position} + $veto_range->{upper}->{position})/2);
+  
+  if($verbose){
+    print "this procedure should be called when signal input is unplugged!\n";
+    print "signal_zero: ".$self->{settings}->{signal_zero}."\n";
+    print "veto_zero: ".$self->{settings}->{veto_zero}."\n";
+    print "values will be stored in settings file";
+  }
+  $self->save_settings();
+  
+  
 }
 
 sub count { # count for a given time on a given channel
@@ -189,7 +255,13 @@ sub signal_range { # determine the range and the position the signal/noise in te
     # delay (default 10 ms)
     # verbose (default off)
     # iterations (default 16)
-  my $verbose = $options{verbose}; # can be "signal" or "veto"
+  my $verbose = $options{verbose};
+  my $sub_verbose = 0;
+  if($verbose){
+    if($verbose > 0){
+      $sub_verbose = $verbose - 1;
+    }
+  }
   
   my $counter_addr;
   my $threshold_addr;
@@ -206,10 +278,7 @@ sub signal_range { # determine the range and the position the signal/noise in te
   
   my $range = {};
   
-  my $sub_verbose = 0;
-  if($verbose > 0){
-    $sub_verbose = $verbose - 1;
-  }
+
   
   $range->{upper} = $self->find_baseline(
     %options,
@@ -385,11 +454,48 @@ sub setup {
   # initialization stuff
   
   # receive CGI query
-  $self->{query} = CGI->new(); 
+  $self->{query} = CGI->new();
   
+  # load settings from settings file 
+  $self->load_settings();
+  
+  my $regio_options = {
+    tty => $self->{settings}->{tty},
+    baudrate => $self->{settings}->{baudrate}
+  };
   # create new register IO object, with CGI parameters "tty" and "baudrate"
-  my $regio_options = $self->CGI_parameters(items => ["tty","baudrate"]);
-  $self->{regio} = regio->new(%$regio_options);
+  my $regio_options_CGI = $self->CGI_parameters(items => ["tty","baudrate"]);
+  # CGI entered values always overwrite settings
+  $self->{regio} = regio->new(%$regio_options, %$regio_options_CGI);
+}
+
+sub load_settings {
+  # is called everytime the script is invoked
+  my $self=shift;
+  my $settings_file = $self->{misc}->{settings_file};
+  
+  if ( -e $settings_file ) {
+    $self->{settings} = {%{$self->{settings}}, %{lock_retrieve($settings_file)}};
+  }
+  return $self->{settings};
+}
+
+sub save_settings {
+  my $self=shift;
+  my %options = @_;
+  my $settings_file = $self->{misc}->{settings_file};
+  
+  my $settings = { %{$self->{settings}}, %options};
+  lock_store($settings,$settings_file);
+  return $self->{settings}
+}
+
+sub reset_settings {
+  my $self=shift;
+  my $settings_file = $self->{misc}->{settings_file};
+  lock_store({},$settings_file);
+  $self->{settings} = {%{$self->{default_settings}}};
+  return $self->{settings}
 }
 
 
