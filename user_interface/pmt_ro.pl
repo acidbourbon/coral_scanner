@@ -89,11 +89,13 @@ sub new {
     signal_counter => 21,
     veto_counter   => 22,
     net_counter    => 23,
-    reset_counter  => 24
+    reset_counter  => 24,
+    dead_time      => 25
   };
   
   $self->{constants} = {
-    DACrange => 65535
+    DACrange => 65535,
+    padiwa_clockrate => 133000000
   };
   
   $self->{misc} = {
@@ -105,7 +107,10 @@ sub new {
     baudrate => 115200,
     signal_zero => 0,
     veto_zero => 0,
-    is_calibrated => 0
+    is_calibrated => 0,
+    dead_time => 265, # corresponds to 2 us dead time
+    signal_thresh => 0,
+    veto_thresh => 0
   };
   
   $self->{settings} = {%{$self->{default_settings}}};
@@ -144,7 +149,9 @@ sub main {
     signal_thresh => 1,
     veto_thresh => 1,
     spectral_scan => 1,
-    spectral_scan_onesided => 1
+    spectral_scan_onesided => 1,
+    dead_time => 1,
+    apply_device_settings => 1
   };
   
   # if method exists, execute it, if not complain and show help message
@@ -168,6 +175,15 @@ sub main {
   }
 }
 
+sub apply_device_settings {
+  my $self = shift;
+  my %options = @_;
+  
+  $self->signal_thresh(value => $self->{settings}->{signal_thresh});
+  $self->veto_thresh(value => $self->{settings}->{veto_thresh});
+  $self->dead_time(value => $self->{settings}->{dead_time});
+  return;
+}
 
 sub spectral_scan {
   my $self = shift;
@@ -260,6 +276,9 @@ sub signal_thresh {
   if($value){
     #if value is given, write threshold
     $self->write_register(regName => "signal_thresh", value => $value+$self->{settings}->{signal_zero});
+    $self->{settings}->{signal_thresh} = $value;
+    $self->save_settings();
+    return;
   } else {
     #just read threshold
     return $self->read_register(regName => "signal_thresh")-$self->{settings}->{signal_zero};
@@ -276,9 +295,48 @@ sub veto_thresh {
   if($value){
     #if value is given, write threshold
     $self->write_register(regName => "veto_thresh", value => $value+$self->{settings}->{veto_zero});
+    $self->{settings}->{veto_thresh} = $value;
+    $self->save_settings();
+    return;
   } else {
     #just read threshold
     return $self->read_register(regName => "veto_thresh")-$self->{settings}->{veto_zero};
+  }
+}
+
+sub dead_time {
+  # reads or sets signal threshold (the latter is done when value is given)
+  # if unit is set (s, ms, us or ns), time is read/set in the given
+  # timebase
+  my $self = shift;
+  my %options = @_;
+  
+  my $value = $options{value};
+  my $unit = $options{unit}||"cycles";
+  
+  my $clockrate = $self->{constants}->{padiwa_clockrate};
+  
+  my $timebase;
+  my $clock2time = 1; # if no unit is given, display as cycles
+  
+  $timebase = 1    if($unit eq "s");
+  $timebase = 1e-3 if($unit eq "ms");
+  $timebase = 1e-6 if($unit eq "us");
+  $timebase = 1e-9 if($unit eq "ns");
+  
+  if ($timebase) {
+    $clock2time = 1/$clockrate/$timebase; # by multiplying with $clock2time
+    # you convert a number of clock cycles to a time in the given timebase
+  }
+  
+  if(defined($value)){
+    #if value is given, write threshold
+    $self->write_register(regName => "dead_time", value => $value/$clock2time);
+    $self->{settings}->{dead_time} = $value;
+    $self->save_settings();
+  } else {
+    #just read threshold
+    return $self->read_register(regName => "dead_time")*$clock2time;
   }
 }
 
