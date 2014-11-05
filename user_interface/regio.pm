@@ -114,7 +114,7 @@ sub communicate {
 
   $self->{port}->are_match("");
   $self->{port}->read_char_time(1);  # avg time between read char
-  $self->{port}->read_const_time(0); # const time for read (milliseconds)
+  $self->{port}->read_const_time(2); # const time for read (milliseconds)
   $self->{port}->lookclear; 
   $self->{port}->write("$command\n");
   

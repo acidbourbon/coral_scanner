@@ -201,6 +201,8 @@ sub spectral_scan {
   my $spec_width = $stop-$start;
   my $bin_width = $spec_width/$bins;
   
+  my $file = FileHandle->new("./test.dat", 'w');
+  
   my $counts;
   my $bin_pos;
   my $spectrum;
@@ -216,6 +218,7 @@ sub spectral_scan {
       bin_pos => $bin_pos
     };
     print "$i\t$bin_pos\t$counts\n" if $verbose;
+    print $file "$i\t$bin_pos\t$counts\n";
   }
   return $spectrum;
   
@@ -398,6 +401,8 @@ sub count { # count for a given time on a given channel
   my $channel = $options{channel}; # can be "signal" or "veto" or "net"
   my $delay   = $options{delay} || 1;
   
+  my $tries   = $options{tries} || 3;
+  
   my $counter_addr;
   my $threshold_addr;
   
@@ -414,16 +419,18 @@ sub count { # count for a given time on a given channel
     die "$channel is not a valid channel!\n possible channels are \"signal\",\"veto\" and \"net\"\n!";
   }
   
-  $self->{regio}->write($self->{regaddr_lookup}->{acquisition},0); # stop acquisition
-  $self->{regio}->read($self->{regaddr_lookup}->{reset_counter}); # reset counter
-  $self->{regio}->write($self->{regaddr_lookup}->{acquisition},1); # start acquisition
-  Time::HiRes::sleep($delay); # let the counter count
-  $self->{regio}->write($self->{regaddr_lookup}->{acquisition},0); # stop acquisition
-  my $counts = $self->{regio}->read($counter_addr); # read counter value
-  $self->{regio}->write($self->{regaddr_lookup}->{acquisition},1); # start acquisition
-  
-  die "Padiwa does not answer!\n" unless defined($counts);
-  return $counts;
+  for ( my $try=0; $try < $tries; $try++) {
+    $self->{regio}->write($self->{regaddr_lookup}->{acquisition},0); # stop acquisition
+    $self->{regio}->read($self->{regaddr_lookup}->{reset_counter}); # reset counter
+    $self->{regio}->write($self->{regaddr_lookup}->{acquisition},1); # start acquisition
+    Time::HiRes::sleep($delay); # let the counter count
+    $self->{regio}->write($self->{regaddr_lookup}->{acquisition},0); # stop acquisition
+    my $counts = $self->{regio}->read($counter_addr); # read counter value
+#     $self->{regio}->write($self->{regaddr_lookup}->{acquisition},1); # start acquisition
+    return $counts if defined($counts);
+  }
+  die "Padiwa does not answer after $tries tries!\n";
+
 }
 
 sub signal_range { # determine the range and the position the signal/noise in terms of
