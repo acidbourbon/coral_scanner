@@ -1,29 +1,31 @@
 
-#define X0 2
-#define DDRX0 DDRB
-#define PORTX0 PORTB
-#define PINX0 PINB
 
-#define X1 3
-#define DDRX1 DDRB
-#define PORTX1 PORTB
-#define PINX1 PINB
+
+#define X0 4
+#define DDRX0 DDRC
+#define PORTX0 PORTC
+#define PINX0 PINC
+
+#define X1 5
+#define DDRX1 DDRC
+#define PORTX1 PORTC
+#define PINX1 PINC
 
 #define X2 4
-#define DDRX2 DDRB
-#define PORTX2 PORTB
-#define PINX2 PINB
+#define DDRX2 DDRD
+#define PORTX2 PORTD
+#define PINX2 PIND
 
-#define X3 5
-#define DDRX3 DDRB
-#define PORTX3 PORTB
-#define PINX3 PINB
+#define X3 6
+#define DDRX3 DDRC
+#define PORTX3 PORTC
+#define PINX3 PINC
 
 
 #define Y0 7
-#define DDRY0 DDRB
-#define PORTY0 PORTB
-#define PINY0 PINB
+#define DDRY0 DDRC
+#define PORTY0 PORTC
+#define PINY0 PINC
 
 #define Y1 6
 #define DDRY1 DDRB
@@ -31,14 +33,37 @@
 #define PINY1 PINB
 
 #define Y2 7
-#define DDRY2 DDRC
-#define PORTY2 PORTC
-#define PINY2 PINC
+#define DDRY2 DDRB
+#define PORTY2 PORTB
+#define PINY2 PINB
 
-#define Y3 6
-#define DDRY3 DDRC
-#define PORTY3 PORTC
-#define PINY3 PINC
+#define Y3 5
+#define DDRY3 DDRB
+#define PORTY3 PORTB
+#define PINY3 PINB
+
+
+#define XEND1 7
+#define DDRXEND1 DDRD
+#define PORTXEND1 PORTD
+#define PINXEND1 PIND
+
+#define XEND2 0
+#define DDRXEND2 DDRB
+#define PORTXEND2 PORTB
+#define PINXEND2 PINB
+
+
+#define YEND1 4
+#define DDRYEND1 DDRB
+#define PORTYEND1 PORTB
+#define PINYEND1 PINB
+
+#define YEND2 3
+#define DDRYEND2 DDRB
+#define PORTYEND2 PORTB
+#define PINYEND2 PINB
+
 
 
 

@@ -8,17 +8,17 @@ void init_leds(void) {
 
 void set_led0(uint8_t value){
   PORTLED0 &= ~(1<<LED0);
-  PORTLED0 |= (value & 0x01)<<LED0;
+  PORTLED0 |= (!(value) & 0x01)<<LED0;
 }
 
 void set_led1(uint8_t value){
   PORTLED1 &= ~(1<<LED1);
-  PORTLED1 |= (value & 0x01)<<LED1;
+  PORTLED1 |= (!(value) & 0x01)<<LED1;
 }
 
 void set_led2(uint8_t value){
   PORTLED2 &= ~(1<<LED2);
-  PORTLED2 |= (value & 0x01)<<LED2;
+  PORTLED2 |= (!(value) & 0x01)<<LED2;
 }
 
 

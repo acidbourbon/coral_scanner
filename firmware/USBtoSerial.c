@@ -402,7 +402,8 @@ uint32_t times_ten_pow(uint8_t exponent) {
   return val;
 }
 
-#define PHASE_DELAY_MS 10
+// #define PHASE_DELAY_MS 1
+#define PHASE_DELAY_US 0
 
 uint8_t move_plate(int16_t dx, int16_t dy){
   static int16_t todo_x,todo_y = 0;
@@ -424,7 +425,7 @@ uint8_t move_plate(int16_t dx, int16_t dy){
   }
   motor_step(Y,signum);
   todo_y -= signum;
-  _delay_ms(PHASE_DELAY_MS);
+  _delay_us(PHASE_DELAY_US);
   
   return returnval; // busy
   
@@ -625,8 +626,8 @@ int main(void)
 {
  
   init_motors();
-  init_leds();
-  init_sw();
+//   init_leds();
+//   init_sw();
 
   
   char dummy;
@@ -661,9 +662,9 @@ int main(void)
 
   while (1) {
     
-    set_led0(sw0_state());
-    set_led1(sw1_state());
-    set_led2(sw2_state());
+//     set_led0(sw0_state());
+//     set_led1(sw1_state());
+//     set_led2(sw2_state());
 
     Usb2SerialTask();
 //     loopcounter++;
@@ -672,10 +673,17 @@ int main(void)
 //     }
 //     loopcounter=0;
     parse_command(); // read data from virtual comport
-    touchpad_read(); // read data from touchpad
-
-    dx = -delta_x();// returns the amount your finger has moved in x direction since last readout
-    dy = -delta_y();// returns the amount your finger has moved in y direction since last readout
+   touchpad_read(); // read data from touchpad
+//     if(sw0_state()){ // if left switch is active
+      dx = -4*delta_x();// returns the amount your finger has moved in x direction since last readout
+//     } else {
+//       dx = 0;
+//     }
+//     if(sw1_state()){ // if middle switch is active
+      dy = -4*delta_y();// returns the amount your finger has moved in y direction since last readout
+//     } else {
+//       dy = 0;
+//     }
 
     // increment/decrement some dummy variables with the
 

@@ -15,10 +15,10 @@
 
 // define here the port and the pin where you cave connected
 // the ADB (I/O) line from your TM1001A touchpad
-#define ADB_BIT (1<<0)
-#define ADB_PIN PIND
-#define ADB_POUT PORTD
-#define ADB_PDIR DDRD
+#define ADB_BIT (1<<1)
+#define ADB_PIN PINB
+#define ADB_POUT PORTB
+#define ADB_PDIR DDRB
 
 // when touchpad is in keypad mode the next two defines set the number
 // of rows and columns of the
