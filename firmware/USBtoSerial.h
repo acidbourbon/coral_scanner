@@ -61,6 +61,8 @@
 
 		/** LED mask for the library LED driver, to indicate that an error has occurred in the USB interface. */
 		#define LEDMASK_USB_ERROR        (LEDS_LED1 | LEDS_LED3)
+		
+#define EMPTY 0xFF00
 
 	/* Function Prototypes: */
 		void SetupHardware(void);
@@ -71,6 +73,10 @@
 		void EVENT_USB_Device_ControlRequest(void);
 
 		void EVENT_CDC_Device_LineEncodingChanged(USB_ClassInfo_CDC_Device_t* const CDCInterfaceInfo);
+                void uart_putc(unsigned char data);
+                void uart_puts(const char *s );
+                uint16_t uart_getc(void);
+                void Usb2SerialTask(void);
 
 #endif
 
