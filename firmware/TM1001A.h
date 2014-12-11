@@ -12,6 +12,7 @@
 // acidbourbon.wordpress.com
 // June 2013
 
+#include <avr/interrupt.h>
 
 // define here the port and the pin where you cave connected
 // the ADB (I/O) line from your TM1001A touchpad
