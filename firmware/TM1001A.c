@@ -1,3 +1,11 @@
+
+
+
+#include <avr/io.h> 
+#include <stdlib.h>
+#include <util/delay.h>
+#include "TM1001A.h"
+
 // This code is based on the work of Frank H. (franky1969) from the
 // Mikrocontroller.net forum.
 // I modified the code thusly that it runs on an ATMega8 with more than 8 MHz
@@ -13,42 +21,10 @@
 // June 2013
 
 
-// define here the port and the pin where you cave connected
-// the ADB (I/O) line from your TM1001A touchpad
-#define ADB_BIT (1<<1)
-#define ADB_PIN PINB
-#define ADB_POUT PORTB
-#define ADB_PDIR DDRB
-
-// when touchpad is in keypad mode the next two defines set the number
-// of rows and columns of the
-#define PAD_ROWS 2
-#define PAD_COLS 3
-
-
-
-
-
-
-
-
-
-
-
 #define TAKT F_CPU
 
 //Bits Makro
 #define BITS(H,L)  (0b##H ##L)
-
-#define MIN_ABS_X 150
-#define MAX_ABS_X 1450
-#define MIN_ABS_Y 210
-#define MAX_ABS_Y 1130
-
-#define PAD_WIDTH (MAX_ABS_X-MIN_ABS_X)
-#define PAD_HEIGHT (MAX_ABS_Y-MIN_ABS_Y)
-#define PAD_COL_WIDTH (PAD_WIDTH/PAD_COLS)
-#define PAD_ROW_HEIGHT (PAD_HEIGHT/PAD_ROWS)
 
 //Vorteiler Timer 0 und 1 bei 2313, 8515, Mega8 (nicht Timer 2)
 #define TIMER_VT_1_B BITS(0000,0001)  
@@ -65,8 +41,6 @@
 
 
 
-typedef unsigned char u08;
-typedef unsigned short int u16;
 
 #define COM_TALK0 BITS(0011,1100) //Adresse 3, Talk, Register0
 #define COM_TALK1 BITS(0011,1101) //Adresse 3, Talk, Register1

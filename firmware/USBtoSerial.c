@@ -33,13 +33,13 @@
  *  Main source file for the USBtoSerial project. This file contains the main tasks of
  *  the project and is responsible for the initial application hardware configuration.
  */
-#define F_CPU 16e6
+// #define F_CPU 16e6
 
 #include <avr/io.h> 
 #include <stdlib.h>
 #include "USBtoSerial.h"
 #include <util/delay.h>
-#include "TM1001A.c"
+#include "TM1001A.h"
 // #include "rfm70.c"
 #include "pins.h"
 #include "leds.c"
