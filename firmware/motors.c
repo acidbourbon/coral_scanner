@@ -7,7 +7,20 @@
 
 
 
-
+// int32_t plate_pos_x = 0,plate_pos_y = 0;
+// 
+// int32_t get_plate_pos_x(){
+//   return plate_pos_x;
+// }
+// void set_plate_pos_x(int32_t value){
+//   plate_pos_x = value;
+// }
+// int32_t get_plate_pos_y(){
+//   return plate_pos_x;
+// }
+// void set_plate_pos_y(int32_t value){
+//   plate_pos_x = value;
+// }
 
 /* motor stuff */
 
@@ -93,8 +106,8 @@ uint8_t motor_step(uint8_t motor, int8_t direction) { // motor: M1 or M2, direct
 
 
 
-uint8_t move_plate(int16_t dx, int16_t dy){
-  static int16_t todo_x,todo_y = 0;
+uint8_t move_plate(int32_t dx, int32_t dy){
+  static int32_t todo_x,todo_y = 0;
   int8_t signum;
   uint8_t busy = 0;
   todo_x += dx;

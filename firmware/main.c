@@ -9,18 +9,30 @@
 #include "pins.h"
 
 
-int16_t plate_pos_x = 0,plate_pos_y = 0;
+#define UM_PER_ROUND 3000
+#define STEPS_PER_ROUND 200
+
+int32_t plate_pos_x = 0,plate_pos_y = 0;
+
+int32_t steps_to_um (int32_t steps){
+  return steps*UM_PER_ROUND/STEPS_PER_ROUND;
+}
+
+int32_t um_to_steps (int32_t um){
+  return um*STEPS_PER_ROUND/UM_PER_ROUND;
+}
   
-void print_steps_in_mm(int16_t steps) {
-  int16_t predot,postdot;
-  
-  predot = steps/24;
-  postdot = ((abs(steps)%24)*417)/10;
-  uart_print_signed_number(predot,3);
+void print_steps_in_mm(int32_t steps) {
+  int32_t um = steps_to_um(steps);
+  uint16_t predot = abs(um/1000);
+  uint16_t postdot = abs(um%1000);
+  uart_print_sign(steps);
+  uart_print_number(predot,3);
   uart_putc('.');
   uart_print_number_wlzeros(postdot,3);
-  
 }
+
+
   
 void pos_report(void){ 
     uart_puts("x_pos: ");
@@ -126,19 +138,20 @@ void parse_command(void){
         
       }
       
-      int16_t steps = 0,dest=0;
+      int32_t steps = 0,dest=0;
       
       switch (action) {
         case GOTO:
           uart_puts("GOTO ");
           uart_putc(88+axis);// x or y
           uart_putc(' ');
-          uart_print_signed_number(predot*num_sign,3);
+          uart_print_sign(num_sign);
+          uart_print_number(predot,3);
           uart_putc('.');
           uart_print_number_wlzeros(postdot,3);
           uart_puts("\r\n"); 
           
-          dest = num_sign *( predot*24 +(postdot*10)/416);
+          dest = um_to_steps(num_sign*(((int32_t) predot) *1000 + ((int32_t) postdot)));
           
           if (axis == X) {
             steps = dest - plate_pos_x; // experimental correction!
@@ -156,12 +169,13 @@ void parse_command(void){
           uart_puts("MOVE ");
           uart_putc(88+axis);// x or y
           uart_putc(' ');
-          uart_print_signed_number(predot*num_sign,3);
+          uart_print_sign(num_sign);
+          uart_print_number(predot,3);
           uart_putc('.');
           uart_print_number_wlzeros(postdot,3);
           uart_puts("\r\n"); 
           
-          steps = num_sign *( predot*24 +(postdot*10)/416);
+          steps = um_to_steps(num_sign*(((int32_t) predot) *1000 + ((int32_t) postdot)));
           
           if (axis == X) {
             move_plate(steps,0);

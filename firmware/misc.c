@@ -36,23 +36,31 @@ int8_t sign(int16_t x) {
 
 
 void uart_print_number(uint32_t zahl, uint8_t no_digits) {
-  my_uitoa(abs(zahl),stringbuffer,no_digits,' ');
+  my_uitoa(zahl,stringbuffer,no_digits,' ');
   uart_puts(stringbuffer);
 }
 
 
 void uart_print_number_wlzeros(uint32_t zahl, uint8_t no_digits) {
-  my_uitoa(abs(zahl),stringbuffer,no_digits,'0');
+  my_uitoa(zahl,stringbuffer,no_digits,'0');
   uart_puts(stringbuffer);
 }
 
-void uart_print_signed_number(uint32_t zahl, uint8_t no_digits) {
+void uart_print_signed_number(int32_t zahl, uint8_t no_digits) {
   my_uitoa(abs(zahl),stringbuffer,no_digits,' ');
-  if (sign(zahl) < 0) {
+  if (zahl < 0) {
     uart_putc('-');
   } else {
     uart_putc('+');
   }
   uart_puts(stringbuffer);
   
+}
+
+void uart_print_sign(int32_t zahl){
+  if (zahl < 0) {
+    uart_putc('-');
+  } else {
+    uart_putc('+');
+  }
 }
