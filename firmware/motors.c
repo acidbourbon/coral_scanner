@@ -2,25 +2,11 @@
 #include <stdlib.h>
 #include <util/delay.h>
 #include "motors.h"
-#include "misc.h"
 #include "pins.h"
 
 
 
-// int32_t plate_pos_x = 0,plate_pos_y = 0;
-// 
-// int32_t get_plate_pos_x(){
-//   return plate_pos_x;
-// }
-// void set_plate_pos_x(int32_t value){
-//   plate_pos_x = value;
-// }
-// int32_t get_plate_pos_y(){
-//   return plate_pos_x;
-// }
-// void set_plate_pos_y(int32_t value){
-//   plate_pos_x = value;
-// }
+
 
 /* motor stuff */
 
@@ -103,59 +89,6 @@ uint8_t motor_step(uint8_t motor, int8_t direction) { // motor: M1 or M2, direct
   return next_pattern;
 
 }
-
-
-
-uint8_t move_plate(int32_t dx, int32_t dy){
-  static int32_t todo_x,todo_y = 0;
-  int8_t signum;
-  uint8_t busy = 0;
-  todo_x += dx;
-  todo_y += dy;
-  
-  //if end switch closed, stop moving against the stop!
-  if(XEND1_state() && (sign(todo_x) == 1) ){
-    todo_x = 0;
-  }
-  if(XEND2_state() && (sign(todo_x) == -1) ){
-    todo_x = 0;
-  }
-  if(YEND1_state() && (sign(todo_y) == 1) ){
-    todo_y = 0;
-  }
-  if(YEND2_state() && (sign(todo_y) == -1) ){
-    todo_y = 0;
-  }
-  
-  
-  signum = sign(todo_x);
-  if(signum != 0) {
-    busy = 1;
-  }
-  motor_step(X,signum);
-  todo_x -= signum;
-  
-  
-  
-  signum = sign(todo_y);
-  if(signum != 0) {
-    busy = 1;
-  }
-  motor_step(Y,signum);
-  todo_y -= signum;
-  
-  
-  
-  _delay_us(PHASE_DELAY_US);
-  
-
-  
-  return busy; // busy
-  
-}
-
-
-
 
 
 

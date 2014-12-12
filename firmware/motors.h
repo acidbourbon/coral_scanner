@@ -1,5 +1,3 @@
-#define PHASE_DELAY_US 0
-
 
 #define X 0
 #define Y 1
@@ -51,7 +49,6 @@ void set_x(uint8_t byte);
 void set_y(uint8_t byte);
 void init_motors(void);
 uint8_t motor_step(uint8_t motor, int8_t direction);
-uint8_t move_plate(int32_t dx, int32_t dy);
 
 
 

@@ -7,12 +7,12 @@
 #include "motors.h"
 #include "misc.h"
 #include "pins.h"
+#include "plate.h"
 
 
 #define UM_PER_ROUND 3000
 #define STEPS_PER_ROUND 200
 
-int32_t plate_pos_x = 0,plate_pos_y = 0;
 
 int32_t steps_to_um (int32_t steps){
   return steps*UM_PER_ROUND/STEPS_PER_ROUND;
@@ -36,9 +36,9 @@ void print_steps_in_mm(int32_t steps) {
   
 void pos_report(void){ 
     uart_puts("x_pos: ");
-    print_steps_in_mm(plate_pos_x);
+    print_steps_in_mm(get_plate_pos_x());
     uart_puts("  y_pos: ");
-    print_steps_in_mm(plate_pos_y);
+    print_steps_in_mm(get_plate_pos_y());
     uart_puts("  end_sw: ");
     uart_print_number_wlzeros(XEND2_state(),1);
     uart_print_number_wlzeros(XEND1_state(),1);
@@ -47,6 +47,12 @@ void pos_report(void){
     uart_puts("\r\n");
 }
 
+
+void move_and_report(int32_t dx, int32_t dy){
+  if(move_plate(dx,dy)){
+    pos_report();
+  }
+}
 
 
 typedef enum {POSITION, GOTO, MOVEREL, SETZERO} action_t;
@@ -154,15 +160,13 @@ void parse_command(void){
           dest = um_to_steps(num_sign*(((int32_t) predot) *1000 + ((int32_t) postdot)));
           
           if (axis == X) {
-            steps = dest - plate_pos_x; // experimental correction!
-            move_plate(steps,0);
-            plate_pos_x += steps;
+            steps = dest - get_plate_pos_x(); // experimental correction!
+            move_and_report(steps,0);
           } else if (axis == Y) {
-            steps = dest - plate_pos_y;
-            move_plate(0,steps);
-            plate_pos_y += steps;
+            steps = dest - get_plate_pos_y();
+            move_and_report(0,steps);
           }
-          pos_report();
+//           pos_report();
           
           break;
         case MOVEREL:
@@ -178,18 +182,16 @@ void parse_command(void){
           steps = um_to_steps(num_sign*(((int32_t) predot) *1000 + ((int32_t) postdot)));
           
           if (axis == X) {
-            move_plate(steps,0);
-            plate_pos_x += steps;
+            move_and_report(steps,0);
           } else if (axis == Y) {
-            move_plate(0,steps);
-            plate_pos_y += steps;
+            move_and_report(0,steps);
           }
-          pos_report();
+//           pos_report();
           break;
           
         case SETZERO:
-          plate_pos_x = 0;
-          plate_pos_y = 0;
+          set_plate_pos_x(0);
+          set_plate_pos_y(0);
           pos_report();
           break;
           
@@ -232,7 +234,6 @@ int main(void){
   
   touchpad_set_rel_mode_100dpi();// use touchpad in relative mode
   int8_t dx, dy = 0;
-  uint8_t busy = 0, last_busy = 0;
 
   while (1) {
     Usb2SerialTask();
@@ -240,17 +241,7 @@ int main(void){
     touchpad_read(); // read data from touchpad
     dx = 4*delta_x();// returns the amount your finger has moved in x direction since last readout
     dy = -4*delta_y();// returns the amount your finger has moved in y direction since last readout
-
-    plate_pos_x += dx;
-    plate_pos_y += dy;
-    
-    last_busy = busy;
-    busy = move_plate(dx,dy);
-    
-    if (last_busy && !(busy)){
-      pos_report();
-
-    }
+    move_and_report(dx,dy);
   }
 
 
