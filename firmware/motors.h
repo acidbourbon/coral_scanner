@@ -6,45 +6,45 @@
 
 
 #define X0 4
-#define DDRX0 DDRC
-#define PORTX0 PORTC
-#define PINX0 PINC
+#define X0_DDR DDRC
+#define X0_PORT PORTC
+#define X0_PIN PINC
 
 #define X1 5
-#define DDRX1 DDRC
-#define PORTX1 PORTC
-#define PINX1 PINC
+#define X1_DDR DDRC
+#define X1_PORT PORTC
+#define X1_PIN PINC
 
 #define X2 4
-#define DDRX2 DDRD
-#define PORTX2 PORTD
-#define PINX2 PIND
+#define X2_DDR DDRD
+#define X2_PORT PORTD
+#define X2_PIN PIND
 
 #define X3 6
-#define DDRX3 DDRC
-#define PORTX3 PORTC
-#define PINX3 PINC
+#define X3_DDR DDRC
+#define X3_PORT PORTC
+#define X3_PIN PINC
 
 
 #define Y0 7
-#define DDRY0 DDRC
-#define PORTY0 PORTC
-#define PINY0 PINC
+#define Y0_DDR DDRC
+#define Y0_PORT PORTC
+#define Y0_PIN PINC
 
 #define Y1 6
-#define DDRY1 DDRB
-#define PORTY1 PORTB
-#define PINY1 PINB
+#define Y1_DDR DDRB
+#define Y1_PORT PORTB
+#define Y1_PIN PINB
 
 #define Y2 7
-#define DDRY2 DDRB
-#define PORTY2 PORTB
-#define PINY2 PINB
+#define Y2_DDR DDRB
+#define Y2_PORT PORTB
+#define Y2_PIN PINB
 
 #define Y3 5
-#define DDRY3 DDRB
-#define PORTY3 PORTB
-#define PINY3 PINB
+#define Y3_DDR DDRB
+#define Y3_PORT PORTB
+#define Y3_PIN PINB
 
 
 void set_x(uint8_t byte);

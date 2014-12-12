@@ -7,15 +7,9 @@
 #include "motors.h"
 #include "misc.h"
 #include "pins.h"
-#include "leds.c"
-
 
 
 int16_t plate_pos_x = 0,plate_pos_y = 0;
-
-
-
-
   
 void print_steps_in_mm(int16_t steps) {
   int16_t predot,postdot;
@@ -33,7 +27,12 @@ void pos_report(void){
     print_steps_in_mm(plate_pos_x);
     uart_puts("  y_pos: ");
     print_steps_in_mm(plate_pos_y);
-    uart_puts("\r");
+    uart_puts("  end_sw: ");
+    uart_print_number_wlzeros(XEND2_state(),1);
+    uart_print_number_wlzeros(XEND1_state(),1);
+    uart_print_number_wlzeros(YEND2_state(),1);
+    uart_print_number_wlzeros(YEND1_state(),1);
+    uart_puts("\r\n");
 }
 
 
@@ -205,13 +204,12 @@ void parse_command(void){
   }
 }
 
-int main(void)
-{
+
+
+int main(void){
  
   init_motors();
   
-  char dummy;
-  uint8_t field_val = 0;
   SetupHardware();
 
   touchpad_init(); // you need to call this to setup the I/O pin!
@@ -219,7 +217,6 @@ int main(void)
   sei();
   
   touchpad_set_rel_mode_100dpi();// use touchpad in relative mode
-  int16_t x, y = 0;
   int8_t dx, dy = 0;
   uint8_t busy = 0, last_busy = 0;
 
@@ -227,7 +224,7 @@ int main(void)
     Usb2SerialTask();
     parse_command(); // read data from virtual comport
     touchpad_read(); // read data from touchpad
-    dx = -4*delta_x();// returns the amount your finger has moved in x direction since last readout
+    dx = 4*delta_x();// returns the amount your finger has moved in x direction since last readout
     dy = -4*delta_y();// returns the amount your finger has moved in y direction since last readout
 
     plate_pos_x += dx;
@@ -238,6 +235,7 @@ int main(void)
     
     if (last_busy && !(busy)){
       pos_report();
+
     }
   }
 

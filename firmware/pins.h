@@ -1,67 +1,48 @@
 
-
-
-
 #define XEND1 7
-#define DDRXEND1 DDRD
-#define PORTXEND1 PORTD
-#define PINXEND1 PIND
+#define XEND1_DDR DDRD
+#define XEND1_PORT PORTD
+#define XEND1_PIN PIND
 
 #define XEND2 0
-#define DDRXEND2 DDRB
-#define PORTXEND2 PORTB
-#define PINXEND2 PINB
-
+#define XEND2_DDR DDRB
+#define XEND2_PORT PORTB
+#define XEND2_PIN PINB
 
 #define YEND1 4
-#define DDRYEND1 DDRB
-#define PORTYEND1 PORTB
-#define PINYEND1 PINB
+#define YEND1_DDR DDRB
+#define YEND1_PORT PORTB
+#define YEND1_PIN PINB
 
 #define YEND2 3
-#define DDRYEND2 DDRB
-#define PORTYEND2 PORTB
-#define PINYEND2 PINB
+#define YEND2_DDR DDRB
+#define YEND2_PORT PORTB
+#define YEND2_PIN PINB
 
 
+void XEND1_set(uint8_t value);
+void XEND1_as_output(void);
+void XEND1_as_input(void);
+void XEND1_as_pullup(void);
+uint8_t XEND1_state(void);
 
 
-
-#define SW0 4
-#define DDRSW0 DDRD
-#define PORTSW0 PORTD
-#define PINSW0 PIND
-
-#define SW1 5
-#define DDRSW1 DDRC
-#define PORTSW1 PORTC
-#define PINSW1 PINC
-
-#define SW2 4
-#define DDRSW2 DDRC
-#define PORTSW2 PORTC
-#define PINSW2 PINC
+void XEND2_set(uint8_t value);
+void XEND2_as_output(void);
+void XEND2_as_input(void);
+void XEND2_as_pullup(void);
+uint8_t XEND2_state(void);
 
 
+void YEND1_set(uint8_t value);
+void YEND1_as_output(void);
+void YEND1_as_input(void);
+void YEND1_as_pullup(void);
+uint8_t YEND1_state(void);
 
 
-#define LED0 1
-#define DDRLED0 DDRB
-#define PORTLED0 PORTB
-#define PINLED0 PINB
-
-#define LED1 0
-#define DDRLED1 DDRB
-#define PORTLED1 PORTB
-#define PINLED1 PINB
-
-#define LED2 6
-#define DDRLED2 DDRD
-#define PORTLED2 PORTD
-#define PINLED2 PIND
-
-
-
-
-
-
+void YEND2_set(uint8_t value);
+void YEND2_as_output(void);
+void YEND2_as_input(void);
+void YEND2_as_pullup(void);
+uint8_t YEND2_state(void);
