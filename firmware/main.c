@@ -226,7 +226,7 @@ int main(void){
   init_motors();
   
   SetupHardware();
-
+  init_plate_timer();
   touchpad_init(); // you need to call this to setup the I/O pin!
   _delay_ms(500);
   sei();
@@ -236,10 +236,10 @@ int main(void){
   while (1) {
     Usb2SerialTask();
     parse_command(); // read data from virtual comport
-    touchpad_read(); // read data from touchpad
-    inc_target_plate_pos_x(4*delta_x());
-    inc_target_plate_pos_y(-4*delta_y());
-    if(move_plate()){
+//     touchpad_read(); // read data from touchpad
+//     inc_target_plate_pos_x(4*delta_x());
+//     inc_target_plate_pos_y(-4*delta_y());
+    if(plate_ready()){
       pos_report();
     }
   }

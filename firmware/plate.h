@@ -5,10 +5,10 @@
 
 
 uint8_t move_plate(void);
+uint8_t plate_ready(void);
 
-
-
-
+ISR( TIMER1_COMPA_vect );
+void init_plate_timer(void);
 int32_t get_plate_pos_x(void);
 int32_t get_plate_pos_y(void);
 void set_plate_pos_x(int32_t value);
