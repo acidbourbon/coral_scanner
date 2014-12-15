@@ -1,5 +1,8 @@
-#define PHASE_DELAY_US 0
+#define PHASE_DELAY_US 1500
 
+#define TIMER_STEP 6.4e-5
+
+#define TIMER_SETTING PHASE_DELAY_US*1e-6/TIMER_STEP
 
 
 

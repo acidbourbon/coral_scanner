@@ -227,11 +227,11 @@ int main(void){
   
   SetupHardware();
   init_plate_timer();
-  touchpad_init(); // you need to call this to setup the I/O pin!
+//   touchpad_init(); // you need to call this to setup the I/O pin!
   _delay_ms(500);
   sei();
   
-  touchpad_set_rel_mode_100dpi();// use touchpad in relative mode
+//   touchpad_set_abs_mode();// use touchpad in relative mode
 
   while (1) {
     Usb2SerialTask();
@@ -239,6 +239,9 @@ int main(void){
 //     touchpad_read(); // read data from touchpad
 //     inc_target_plate_pos_x(4*delta_x());
 //     inc_target_plate_pos_y(-4*delta_y());
+//     uart_print_number(x_abs(),5);
+//     uart_puts("\n\r");
+//     _delay_ms(200);
     if(plate_ready()){
       pos_report();
     }

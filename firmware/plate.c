@@ -11,8 +11,8 @@
 
 // plate stuff
 
-int32_t plate_pos_x = 0,plate_pos_y = 0;
-int32_t target_plate_pos_x = 0,target_plate_pos_y = 0;
+volatile int32_t plate_pos_x = 0,plate_pos_y = 0;
+volatile int32_t target_plate_pos_x = 0,target_plate_pos_y = 0;
 
 uint8_t ready = 0;
 
@@ -105,7 +105,7 @@ uint8_t move_plate(void){
   
   
   
-  _delay_us(PHASE_DELAY_US);
+//   _delay_us(PHASE_DELAY_US);
   
   if( busy && (todo_x==0) && (todo_y==0) ){
     busy=0;
@@ -116,12 +116,12 @@ uint8_t move_plate(void){
 }
 
 
-
+// the following is only needed if used with interrupt
 
 void init_plate_timer(void){
   TCCR1B |= (1<<CS10) | (1<<CS12) | (1<<WGM12);
   TCCR1C |= (1<<FOC1A);
-  OCR1A = 32;
+  OCR1A = TIMER_SETTING;
   TIMSK1 |= (1<<OCIE1A);
   
 }
