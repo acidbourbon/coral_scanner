@@ -11,47 +11,71 @@
 // plate stuff
 
 int32_t plate_pos_x = 0,plate_pos_y = 0;
+int32_t target_plate_pos_x = 0,target_plate_pos_y = 0;
 
 int32_t get_plate_pos_x(void){
   return plate_pos_x;
 }
-void set_plate_pos_x(int32_t value){
-  plate_pos_x = value;
-}
 int32_t get_plate_pos_y(void){
   return plate_pos_y;
+}
+void set_plate_pos_x(int32_t value){
+  plate_pos_x = value;
 }
 void set_plate_pos_y(int32_t value){
   plate_pos_y = value;
 }
+int32_t get_target_plate_pos_x(void){
+  return target_plate_pos_x;
+}
+int32_t get_target_plate_pos_y(void){
+  return target_plate_pos_y;
+}
+void set_target_plate_pos_x(int32_t value){
+  target_plate_pos_x = value;
+}
+void set_target_plate_pos_y(int32_t value){
+  target_plate_pos_y = value;
+}
+void inc_target_plate_pos_x(int32_t value){
+  target_plate_pos_x += value;
+}
+void inc_target_plate_pos_y(int32_t value){
+  target_plate_pos_y += value;
+}
 
 
-uint8_t move_plate(int32_t dx, int32_t dy){
-  static int32_t todo_x,todo_y = 0;
+uint8_t move_plate(void){
+  int32_t todo_x,todo_y = 0;
   int8_t signum;
   static uint8_t busy = 0;
-  todo_x += dx;
-  todo_y += dy;
+  todo_x = target_plate_pos_x-plate_pos_x;
+  todo_y = target_plate_pos_y-plate_pos_y;
   
-  if( (dx!=0) || (dy!=0) ){
-    busy = 1;
-  };
   
 
   
   //if end switch closed, stop moving against the stop!
   if(XEND1_state() && (sign(todo_x) == 1) ){
     todo_x = 0;
+    target_plate_pos_x = plate_pos_x;
   }
   if(XEND2_state() && (sign(todo_x) == -1) ){
     todo_x = 0;
+    target_plate_pos_x = plate_pos_x;
   }
   if(YEND1_state() && (sign(todo_y) == 1) ){
     todo_y = 0;
+    target_plate_pos_y = plate_pos_y;
   }
   if(YEND2_state() && (sign(todo_y) == -1) ){
     todo_y = 0;
+    target_plate_pos_y = plate_pos_y;
   }
+  
+  if( (todo_x!=0) || (todo_y!=0) ){
+    busy = 1;
+  };
   
   
   signum = sign(todo_x);

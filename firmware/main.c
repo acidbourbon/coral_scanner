@@ -48,13 +48,6 @@ void pos_report(void){
 }
 
 
-void move_and_report(int32_t dx, int32_t dy){
-  if(move_plate(dx,dy)){
-    pos_report();
-  }
-}
-
-
 typedef enum {POSITION, GOTO, MOVEREL, SETZERO} action_t;
 
 void parse_command(void){
@@ -160,11 +153,13 @@ void parse_command(void){
           dest = um_to_steps(num_sign*(((int32_t) predot) *1000 + ((int32_t) postdot)));
           
           if (axis == X) {
-            steps = dest - get_plate_pos_x(); // experimental correction!
-            move_and_report(steps,0);
+//             steps = dest - get_plate_pos_x(); // experimental correction!
+//             move_and_report(steps,0);
+            set_target_plate_pos_x(dest);
           } else if (axis == Y) {
-            steps = dest - get_plate_pos_y();
-            move_and_report(0,steps);
+//             steps = dest - get_plate_pos_y();
+//             move_and_report(0,steps);
+            set_target_plate_pos_y(dest);
           }
 //           pos_report();
           
@@ -182,9 +177,11 @@ void parse_command(void){
           steps = um_to_steps(num_sign*(((int32_t) predot) *1000 + ((int32_t) postdot)));
           
           if (axis == X) {
-            move_and_report(steps,0);
+//             move_and_report(steps,0);
+            set_target_plate_pos_x(get_target_plate_pos_x()+steps);
           } else if (axis == Y) {
-            move_and_report(0,steps);
+//             move_and_report(0,steps);
+            set_target_plate_pos_y(get_target_plate_pos_y()+steps);
           }
 //           pos_report();
           break;
@@ -192,6 +189,8 @@ void parse_command(void){
         case SETZERO:
           set_plate_pos_x(0);
           set_plate_pos_y(0);
+          set_target_plate_pos_x(0);
+          set_target_plate_pos_y(0);
           pos_report();
           break;
           
@@ -233,15 +232,16 @@ int main(void){
   sei();
   
   touchpad_set_rel_mode_100dpi();// use touchpad in relative mode
-  int8_t dx, dy = 0;
 
   while (1) {
     Usb2SerialTask();
     parse_command(); // read data from virtual comport
     touchpad_read(); // read data from touchpad
-    dx = 4*delta_x();// returns the amount your finger has moved in x direction since last readout
-    dy = -4*delta_y();// returns the amount your finger has moved in y direction since last readout
-    move_and_report(dx,dy);
+    inc_target_plate_pos_x(4*delta_x());
+    inc_target_plate_pos_y(-4*delta_y());
+    if(move_plate()){
+      pos_report();
+    }
   }
 
 
