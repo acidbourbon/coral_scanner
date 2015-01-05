@@ -3,14 +3,13 @@ package pmt_ro;
 
 use strict;
 use warnings;
-use Device::SerialPort;
 use Time::HiRes;
 use POSIX qw/strftime/;
 use POSIX;
-use CGI ':standard';
-use CGI::Carp qw(fatalsToBrowser);
+# use CGI ':standard';
+# use CGI::Carp qw(fatalsToBrowser);
 use Data::Dumper;
-use Pod::Usage;
+# use Pod::Usage;
 use FileHandle;
 use regio;
 # use manage_settings;

@@ -4,6 +4,7 @@
 
 package regio;
 
+use Device::SerialPort;
 
 =head1 NAME
 
