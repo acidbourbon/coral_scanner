@@ -15,6 +15,7 @@ volatile int32_t plate_pos_x = 0,plate_pos_y = 0;
 volatile int32_t target_plate_pos_x = 0,target_plate_pos_y = 0;
 
 uint8_t ready = 0;
+uint8_t busy = 0;
 
 int32_t get_plate_pos_x(void){
   return plate_pos_x;
@@ -36,15 +37,19 @@ int32_t get_target_plate_pos_y(void){
 }
 void set_target_plate_pos_x(int32_t value){
   target_plate_pos_x = value;
+  busy = 1;
 }
 void set_target_plate_pos_y(int32_t value){
   target_plate_pos_y = value;
+  busy = 1;
 }
 void inc_target_plate_pos_x(int32_t value){
   target_plate_pos_x += value;
+  busy = 1;
 }
 void inc_target_plate_pos_y(int32_t value){
   target_plate_pos_y += value;
+  busy = 1;
 }
 
 uint8_t plate_ready(void){
@@ -61,7 +66,6 @@ uint8_t plate_ready(void){
 uint8_t move_plate(void){
   int32_t todo_x,todo_y = 0;
   int8_t signum;
-  static uint8_t busy = 0;
   todo_x = target_plate_pos_x-plate_pos_x;
   todo_y = target_plate_pos_y-plate_pos_y;
   
