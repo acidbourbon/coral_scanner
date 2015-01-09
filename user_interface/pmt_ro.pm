@@ -49,7 +49,7 @@ sub new {
   };
   
   $self->{misc} = {
-    settings_file => "./settings.dat"
+    settings_file => "./pmt_ro.settings"
   };
   
   $self->{default_settings} = { # hard default settings

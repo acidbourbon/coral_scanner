@@ -5,7 +5,7 @@ use warnings;
 use CGI ':standard';
 use CGI::Carp qw(fatalsToBrowser);
 use Data::Dumper;
-use pmt_ro;
+use table_control;
 
 
 ####################################################################################
@@ -15,7 +15,7 @@ use pmt_ro;
 
 
 my $query = CGI->new();
-my $self = pmt_ro->new();
+my $self = table_control->new();
 
 
 my $sub = $query->param('sub') || "help";
@@ -25,21 +25,11 @@ my $sub = $query->param('sub') || "help";
 my $dispatch = {
   help => 1,
   test => 1,
-  read_register => 1,
-  write_register => 1,
-  find_baseline => 1,
-  signal_range => 1,
-  count => 1,
   load_settings => 1,
   save_settings => 1,
   reset_settings => 1,
-  zero_calib => 1,
-  signal_thresh => 1,
-  veto_thresh => 1,
-  spectral_scan => 1,
-  spectral_scan_onesided => 1,
-  dead_time => 1,
-  apply_device_settings => 1
+  init_port => 1,
+  communicate => 1
 };
 
 # if method exists, execute it, if not complain and show help message
@@ -48,7 +38,7 @@ if ($dispatch->{$sub} ) {
   
   # do not pass the "sub=..." parameters to the called sub
   delete $args->{"sub"};
-
+  
   # here the corresponding method is called
   my $return = $self->$sub(%$args);
   # does it return anything?
