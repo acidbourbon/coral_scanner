@@ -24,7 +24,11 @@ my $dispatch_table = {
   communicate => 1,
   set_zero => 1,
   go_xy    => 1,
-  home   => 1
+  home   => 1,
+  go_startpoint => 1,
+  scan_pattern => 1,
+  scan_pattern_to_svg => 1,
+  scan => 1
 };
 
 CGI_dispatch::dispatch_sub($self,$dispatch_table);
