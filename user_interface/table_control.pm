@@ -356,8 +356,8 @@ sub scan_pattern {
   my $sample_rect_size_y = $sample_rect_y2 - $sample_rect_y1;
   
   
-  my $steps_in_x = $sample_rect_size_x / $sample_step_size +1;
-  my $steps_in_y = $sample_rect_size_y / $sample_step_size +1;
+  my $steps_in_x = floor($sample_rect_size_x / $sample_step_size) +1;
+  my $steps_in_y = floor($sample_rect_size_y / $sample_step_size) +1;
   
   my $coordinate_array = [];
   
@@ -368,19 +368,26 @@ sub scan_pattern {
       if( $style eq "linebyline" ) {
         push(@$coordinate_array,{
           x => $sample_rect_x1 + $i*$sample_step_size,
-          y => $sample_rect_y1 + $j*$sample_step_size
+          row => $i,
+          y => $sample_rect_y1 + $j*$sample_step_size,
+          col => $j
         });
       } elsif ( $style eq "meander" ) {
         #reverse the y stepping direction every row
         my $y;
+        my $col;
         if ( $i % 2 ) {  # is the row number uneven ?
+          $col = ($steps_in_y-$j-1);
           $y = $sample_rect_y1 + ($steps_in_y-$j-1)*$sample_step_size; # other direction
         } else {
+          $col = $j;
           $y = $sample_rect_y1 + $j*$sample_step_size; # else default direction
         }
         push(@$coordinate_array,{
           x => $sample_rect_x1 + $i*$sample_step_size,
-          y => $y
+          row => $i,
+          y => $y,
+          col => $col
         });
       }
     
@@ -407,39 +414,61 @@ sub scan_pattern_to_svg {
   my $sample_rect_y1 = $self->{settings}->{sample_rect_y1};
   my $sample_rect_y2 = $self->{settings}->{sample_rect_y2};
   
-  my $mm2pix = 12 / 2.54; # pixels per mm
+  my $aperture_dia = $self->{settings}->{sample_aperture_dia};
+  
+  my $mm2pix = 1; # pixels per mm
   
   # create an SVG object with a size of 40x40 pixels
   my $svg = SVG->new(
-  width => 300*$mm2pix,
-  height => 150*$mm2pix
+        -printerror => 1,
+        -raiseerror => 0,
+        -indent     => '  ',
+        -docroot => 'svg', #default document root element (SVG specification assumes svg). Defaults to 'svg' if undefined
+        #-sysid      => 'abc', #optional system identifyer 
+        #-pubid      => "-//W3C//DTD SVG 1.0//EN", #public identifyer default value is "-//W3C//DTD SVG 1.0//EN" if undefined
+        #-namespace => 'mysvg',
+        -inline   => 1,
+        id          => 'document_element',
+  width => 800,
+  height => 600,
   );
   
-  $svg->rectangle(
-    x => $sample_rect_x1 * $mm2pix,
-    width => ($sample_rect_x2 -$sample_rect_x1)* $mm2pix,
-    y => $sample_rect_y1 * $mm2pix,
-    height => ($sample_rect_y2 - $sample_rect_y1)* $mm2pix,
+  my $scale = 24;
+  
+  my $scaler = $svg->group(
+      transform => "scale($scale)"
+  );
+  
+  my $group1 = $scaler->group(
+      transform => "translate(".(-$sample_rect_x1+$aperture_dia).",".(-$sample_rect_y1+$aperture_dia).")"
+    );
+  
+  $group1->rectangle(
+    x => $sample_rect_x1-$aperture_dia/2 ,
+    width => ($sample_rect_x2 -$sample_rect_x1)+$aperture_dia,
+    y => $sample_rect_y1-$aperture_dia/2 ,
+    height => ($sample_rect_y2 - $sample_rect_y1)+$aperture_dia,
     style=>{
           'stroke'=>'black',
           'fill'=>'none',
-          'stroke-width'=>'0.5',
+          'stroke-width'=>5/$scale,
     }
   );
   
   my $lastpoint;
-#   my $counter=0;
+  my $counter=0;
   for my $point (@$scan_pattern) {
- 
- 
-    if(0){ 
-      $svg->circle(
-        cx => $point->{x} * $mm2pix,
-        cy => $point->{y} * $mm2pix,
-        r => $self->{settings}->{sample_aperture_dia}/2 * $mm2pix,
+    last if ($counter++ > 200);
+    
+    
+    if(1){ 
+      $group1->circle(
+        cx => $point->{x} ,
+        cy => $point->{y} ,
+        r => $aperture_dia/2 ,
         style=>{
               'stroke'=>'none',
-              'fill'=>'rgb(100,100,100)',
+              'fill'=>'rgb(180,180,180)',
               'stroke-width'=>'0.5',
   #             'stroke-opacity'=>'0.5',
   #             'fill-opacity'=>'0.0'
@@ -448,14 +477,14 @@ sub scan_pattern_to_svg {
     }
     
     if( defined ($lastpoint)) {
-      $svg->line(
+      $group1->line(
 #           id=>'l1.'.$counter++,
-          x1=> $lastpoint->{x}*$mm2pix, y1=>$lastpoint->{y}*$mm2pix,
-          x2=> $point->{x}*$mm2pix    , y2=>$point->{y}*$mm2pix,
+          x1=> $lastpoint->{x}, y1=>$lastpoint->{y},
+          x2=> $point->{x}    , y2=>$point->{y},
         style=>{
               'stroke'=>'red',
               'fill'=>'none',
-              'stroke-width'=>'.5',
+              'stroke-width'=> 2/$scale,
   #             'stroke-opacity'=>'0.5',
   #             'fill-opacity'=>'0.0'
           }
@@ -481,13 +510,16 @@ sub scan_pattern_to_svg {
 sub scan {
   my $self = shift;
   my %options = @_;
-  my $eval = $options{eval};
+  
+  my $eval   = $options{eval};
+  my $subref = $options{subref};
   
   $self->require_run("load_settings");
   
   for my $point (@{$self->scan_pattern()}) {
     $self->go_xy( x => $point->{x}, y => $point->{y});
-    eval $eval;
+    eval $eval  if defined($eval);
+    $subref->($point) if defined($subref);
   }
   
 }
@@ -501,6 +533,8 @@ sub set_zero {
 sub home {
   my $self = shift;
   
+  $self->require_run("status");
+  
   # check if already at the stops, if yes, move away and return again
   my $answer = $self->status();
   if (($answer->{xend2_sw} == 1) && ($answer->{xend2_sw} == 1)) { ## did you hit the stop switch?
@@ -513,12 +547,13 @@ sub home {
  
   # not homed ... go home
   $answer = $self->go_xy(
-    x => -1.2*$self->{settings}->{size_x},
-    y => -1.2*$self->{settings}->{size_y}
+    x => $self->{realpos}->{x} -1.1*$self->{settings}->{size_x},
+    y => $self->{realpos}->{y} -1.1*$self->{settings}->{size_y}
   );
   
   if (($answer->{xend2_sw} == 1) && ($answer->{xend2_sw} == 1)) { ## did you hit the stop switch?
-    return $self->set_zero();
+    $self->set_zero();
+    return $answer; # return the last status before reset -> residuals for error checking
   } else {
     die "homing the axes failed!\n";
   }
