@@ -458,7 +458,7 @@ sub scan_pattern_to_svg {
   my $lastpoint;
   my $counter=0;
   for my $point (@$scan_pattern) {
-    last if ($counter++ > 200);
+    last if ($counter++ > 600);
     
     
     if(1){ 
