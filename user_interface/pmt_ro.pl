@@ -24,6 +24,7 @@ my $dispatch_table = {
   load_settings => 1,
   save_settings => 1,
   reset_settings => 1,
+  settings_form => 1,
   zero_calib => 1,
   signal_thresh => 1,
   veto_thresh => 1,

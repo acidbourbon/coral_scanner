@@ -54,6 +54,25 @@ sub new {
     
     
   };
+  
+  $self->{settings_desc} = {
+    tty => "The address of the serial device (COMPORT) of the linear table",
+    baudrate => "Baudrate (bits/second) setting of the serial device (tty) of the linear table",
+    approx_speed => "Approximate speed of the linear table in mm/sec. Value is used to estimate timeouts",
+    size_x => "Length/travel of the linear table x axis in mm",
+    size_y => "Length/travel of the linear table y axis in mm",
+    table_precision => "Precision of the linear table in mm/step",
+    
+    sample_rect_x1 => "x start coordinate of sample area in mm",
+    sample_rect_x2 => "x end coordinate of sample area in mm",
+    sample_rect_y1 => "y start coordinate of sample area in mm",
+    sample_rect_y2 => "y end coordinate of sample area in mm",
+    sample_step_size => "The step size/width for the scan pattern in mm",
+    sample_aperture_dia => "Estimate of the radiation aperture in mm",
+    
+    scan_pattern_svg_file => "Filename for the visualization (svg image) of the scan pattern",
+    scan_pattern_style => "Defines the scan modus, available options are 'linebyline' and 'meander'"
+  };
 
   $self->{has_run} = {}; # remember which subs already have run
   

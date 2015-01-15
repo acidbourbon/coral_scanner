@@ -37,6 +37,7 @@ sub reset_settings {
 sub settings_form {
   my $self=shift;
   my $settings = $self->load_settings();
+  my $settings_desc = $self->{settings_desc};
 
   printHeader('text/html');
   
@@ -45,28 +46,43 @@ sub settings_form {
 .hidden {
   visibility:collapse
 }
+
+span.dropt {border-bottom: thin dotted; background: #ffeedd;}
+span.dropt:hover {text-decoration: none; background: #ffffff; z-index: 6; }
+span.dropt span {position: absolute; left: -9999px;
+  margin: 20px 0 0 0px; padding: 3px 3px 3px 3px;
+  border-style:solid; border-color:black; border-width:1px; z-index: 6;}
+span.dropt:hover span {left: 2%; background: #ffffff;} 
+span.dropt span {position: absolute; left: -9999px;
+  margin: 4px 0 0 0px; padding: 3px 3px 3px 3px; 
+  border-style:solid; border-color:black; border-width:1px;}
+span.dropt:hover span {margin: 20px 0 0 170px; background: #ffffff; z-index:6;} 
+
 </style>
 
   
-<form action="table_control.pl" method="get">
+<form action="'.__PACKAGE__.'.pl" method="get" target="_self">
   <input type="text" name="sub" value="save_settings" class="hidden"><br>
   <table>
   ';
   
   for my $key ( sort(keys %$settings) ) {
     my $value = $settings->{$key};
-    print "<tr><td align=right>$key :</td>";
+    print "<tr><td align=right><span class=dropt>$key :";
+    
+    print "<span style=\"width:300px;\" >".$settings_desc->{$key}."</span></span></td>";
     print "<td><input type='text' name='$key' value='$value'></td></tr>";
   }
 
 print '
-
-  </table><input type="submit" value="save settings">
+  <tr><td></td><td>
+  <input type="submit" value="save settings"></td>
+  </table>
 </form>
 
 
 ';
-  return 1;
+  return " ";
 
 }
 
