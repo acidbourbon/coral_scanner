@@ -11,13 +11,14 @@ my $query;
 
 sub dispatch_sub {
 
-
-  my $self = shift;
-  my $dispatch_table = shift;
+  my %options= @_;
+  my $self = $options{"package"};
+  my $dispatch_table = $options{"dispatch_table"};
+  my $default_sub = $options{"default_sub"} || "help";
   
   $query = CGI->new();
 
-  my $sub = $query->param('sub') || "help";
+  my $sub = $query->param('sub') || $default_sub;
 
   # if method exists in dispatch table, execute it, if not complain and show help message
   # if there is no dispatch table, allow execution of every sub

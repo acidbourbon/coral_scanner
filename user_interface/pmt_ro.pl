@@ -34,4 +34,4 @@ my $dispatch_table = {
   apply_device_settings => 1
 };
 
-CGI_dispatch::dispatch_sub($self,$dispatch_table);
+CGI_dispatch::dispatch_sub(package => $self, dispatch_table => $dispatch_table);

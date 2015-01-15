@@ -1,4 +1,3 @@
-package has_settings;
 
 use Storable qw(lock_store lock_retrieve);
 require misc_subs;
