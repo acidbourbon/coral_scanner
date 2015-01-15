@@ -12,14 +12,14 @@ use SVG;
 
 use CGI ':standard';
 
-require settings_subs;
+use settings_subs;
 # our @ISA = qw/has_settings/; # assimilate the methods of the has_settings class
 
 
-#use pmt_ro;
-#use table_control;
+use pmt_ro;
+use table_control;
 
-require misc_subs;
+use misc_subs;
 
 ## methods
 
@@ -53,8 +53,8 @@ sub new {
   };
   bless($self, $class);
   
-  #$self->{pmt_ro} = pmt_ro->new();
-  #$self->{pmt_control} = table_control->new();
+  $self->{pmt_ro} = pmt_ro->new();
+  $self->{pmt_control} = table_control->new();
   
   return $self;
 }
@@ -89,7 +89,7 @@ sub main_html {
   
   print "<p id='show_pmt_ro_settings' class='quasibutton' >pmt_ro settings</p>";
   print "<div id='pmt_ro_settings_container' class='stylishBox hidden_by_default'>";
-  $self->settings_form();
+  $self->{pmt_ro}->settings_form();
   print "</div>";
   
   

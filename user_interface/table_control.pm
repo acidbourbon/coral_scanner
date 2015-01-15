@@ -14,8 +14,8 @@ use CGI;
 
 # use has_settings;
 # our @ISA = qw/has_settings/; # assimilate the methods of the has_settings class
-require settings_subs;
-require misc_subs;
+use settings_subs;
+use misc_subs;
 
 
 ## methods

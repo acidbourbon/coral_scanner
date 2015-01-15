@@ -1,4 +1,17 @@
+package misc_subs;
 
+
+BEGIN {
+  require Exporter;
+  # set the version for version checking
+  our $VERSION = 1.00;
+  # Inherit from Exporter to export functions and variables
+  our @ISA = qw(Exporter);
+  # Functions and variables which are exported by default
+  our @EXPORT = qw(printHeader min max echo require_run test);
+  # Functions and variables which can be optionally exported
+  #our @EXPORT_OK = qw($Var1 %Hashit func3);
+}
 
 sub test {
   my $self = shift;

@@ -9,8 +9,8 @@ use POSIX;
 use FileHandle;
 use regio;
 
-require settings_subs;
-require misc_subs;
+use settings_subs;
+use misc_subs;
 
 ## methods
 

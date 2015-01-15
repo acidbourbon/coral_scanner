@@ -1,7 +1,20 @@
-
+package settings_subs;
 use Storable qw(lock_store lock_retrieve);
-require misc_subs;
+use misc_subs;
 
+
+
+BEGIN {
+  require Exporter;
+  # set the version for version checking
+  our $VERSION = 1.00;
+  # Inherit from Exporter to export functions and variables
+  our @ISA = qw(Exporter);
+  # Functions and variables which are exported by default
+  our @EXPORT = qw(load_settings save_settings reset_settings settings_form);
+  # Functions and variables which can be optionally exported
+  #our @EXPORT_OK = qw($Var1 %Hashit func3);
+}
 
 
 sub load_settings {
