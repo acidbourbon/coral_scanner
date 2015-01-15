@@ -12,7 +12,9 @@ use SVG;
 
 use CGI;
 
-require settings_subs;
+use has_settings;
+our @ISA = qw/has_settings/; # assimilate the methods of the has_settings class
+
 require misc_subs;
 
 

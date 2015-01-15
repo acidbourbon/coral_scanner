@@ -1,6 +1,9 @@
+package has_settings;
 
 use Storable qw(lock_store lock_retrieve);
 require misc_subs;
+
+
 
 sub load_settings {
   my $self=shift;
@@ -22,7 +25,8 @@ sub save_settings {
   
   $self->{settings} = { %{$self->{settings}}, %options};
   lock_store($self->{settings},$settings_file);
-  return $self->{settings}
+  print "settings were saved!\n";
+  return $self->{settings};
 }
 
 sub reset_settings {
@@ -61,7 +65,7 @@ span.dropt:hover span {margin: 20px 0 0 170px; background: #ffffff; z-index:6;}
 </style>
 
   
-<form action="'.__PACKAGE__.'.pl" method="get" target="_self">
+<form action="'.ref($self).'.pl" method="get" target="_self">
   <input type="text" name="sub" value="save_settings" class="hidden"><br>
   <table>
   ';
