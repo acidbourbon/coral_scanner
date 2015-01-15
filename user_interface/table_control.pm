@@ -10,8 +10,10 @@ use Device::SerialPort;
 
 use SVG;
 
-use Storable qw(lock_store lock_retrieve);
+use CGI;
 
+require settings_subs;
+require misc_subs;
 
 
 ## methods
@@ -28,9 +30,7 @@ sub new {
   $self->{constants} = {
   };
   
-  $self->{misc} = {
-    settings_file => "./table_control.settings"
-  };
+  $self->{settings_file} = "./".__PACKAGE__.".settings";
   
   $self->{default_settings} = { # hard default settings
     tty => "/dev/ttyACM0",
@@ -68,15 +68,6 @@ sub new {
   return $self;
 }
 
-sub require_run {
-  my $self    = shift;
-  my $subname = shift;
-  
-  unless($self->{has_run}->{$subname}){
-    $self->$subname();
-    $self->{has_run}->{$subname} = 1;
-  }
-}
 
 
 
@@ -84,36 +75,10 @@ sub require_run {
 
 
 
-sub load_settings {
-  my $self=shift;
-  my $settings_file = $self->{misc}->{settings_file};
-  
-  if ( -e $settings_file ) {
-    $self->{settings} = {%{$self->{settings}}, %{lock_retrieve($settings_file)}};
-  }
-  return $self->{settings};
-}
 
-sub save_settings {
-  my $self=shift;
-  my %options = @_;
-  
-  $self->require_run("load_settings");
-  
-  my $settings_file = $self->{misc}->{settings_file};
-  
-  $self->{settings} = { %{$self->{settings}}, %options};
-  lock_store($self->{settings},$settings_file);
-  return $self->{settings}
-}
 
-sub reset_settings {
-  my $self=shift;
-  my $settings_file = $self->{misc}->{settings_file};
-  lock_store({},$settings_file);
-  $self->{settings} = {%{$self->{default_settings}}};
-  return $self->{settings}
-}
+
+
 
 
 sub help {
@@ -124,20 +89,6 @@ sub help {
   exit;
   
 }
-sub test {
-  my $self = shift;
-  my %options = @_;
-  print "This is the test message!\n";
-  print "The test routine has received the following options:\n\n";
-  
-  for my $item ( keys %options ) {
-    print "key: $item\tvalue: ".$options{$item}."\n";
-  }
-  exit;
-  
-}
-
-
 
 
 
@@ -558,24 +509,5 @@ sub home {
     die "homing the axes failed!\n";
   }
 }
-
-
-
-
-# simple subs
-
-sub echo {
-  print shift."\n";
-}
-
-sub max {
-  my ($x,$y) = @_;
-  return $x >= $y ? $x : $y;
-}
-sub min {
-  my ($x,$y) = @_;
-  return $x <= $y ? $x : $y;
-}
-
 
 1;

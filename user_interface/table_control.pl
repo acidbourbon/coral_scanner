@@ -28,7 +28,8 @@ my $dispatch_table = {
   go_startpoint => 1,
   scan_pattern => 1,
   scan_pattern_to_svg => 1,
-  scan => 1
+  scan => 1,
+  settings_form => 1
 };
 
 CGI_dispatch::dispatch_sub($self,$dispatch_table);
