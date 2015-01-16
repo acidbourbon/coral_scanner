@@ -51,7 +51,8 @@ sub new {
     sample_step_size => 1,
     sample_aperture_dia => 1,
     
-    scan_pattern_style => "meander"
+    scan_pattern_style => "meander",
+    rows_to_scan => 10
     
     
   };
@@ -71,7 +72,8 @@ sub new {
     sample_step_size => "The step size/width for the scan pattern in mm",
     sample_aperture_dia => "Estimate of the radiation aperture in mm",
     
-    scan_pattern_style => "Defines the scan modus, available options are 'linebyline' and 'meander'"
+    scan_pattern_style => "Defines the scan modus, available options are 'linebyline' and 'meander'",
+    rows_to_scan => "number of rows the device must scan, if set to 0 then scan the whole sample"
   };
 
   $self->{has_run} = {}; # remember which subs already have run
@@ -340,24 +342,27 @@ sub scan_pattern {
           x => $sample_rect_x1 + $i*$sample_step_size,
           row => $i,
           y => $sample_rect_y1 + $j*$sample_step_size,
-          col => $j
+          col => $j,
+          x_rel => $i*$sample_step_size,
+          y_rel => $j*$sample_step_size
         });
       } elsif ( $style eq "meander" ) {
         #reverse the y stepping direction every row
         my $y;
+        my $y_rel;
         my $col;
         if ( $i % 2 ) {  # is the row number uneven ?
           $col = ($steps_in_y-$j-1);
-          $y = $sample_rect_y1 + ($steps_in_y-$j-1)*$sample_step_size; # other direction
         } else {
           $col = $j;
-          $y = $sample_rect_y1 + $j*$sample_step_size; # else default direction
         }
         push(@$coordinate_array,{
           x => $sample_rect_x1 + $i*$sample_step_size,
           row => $i,
-          y => $y,
-          col => $col
+          y => $sample_rect_y1 + $col*$sample_step_size,
+          col => $col,
+          x_rel => $i*$sample_step_size,
+          y_rel => $col*$sample_step_size
         });
       }
     
@@ -416,13 +421,13 @@ sub scan_pattern_to_svg {
   );
   
   my $group1 = $scaler->group(
-      transform => "translate(".(-$sample_rect_x1+$aperture_dia).",".(-$sample_rect_y1+$aperture_dia).")"
+      transform => "translate($aperture_dia,$aperture_dia)"
     );
   
   $group1->rectangle(
-    x => $sample_rect_x1-$aperture_dia/2 ,
+    x => -$aperture_dia/2 ,
     width => ($sample_rect_x2 -$sample_rect_x1)+$aperture_dia,
-    y => $sample_rect_y1-$aperture_dia/2 ,
+    y => -$aperture_dia/2 ,
     height => ($sample_rect_y2 - $sample_rect_y1)+$aperture_dia,
     style=>{
           'stroke'=>'black',
@@ -435,13 +440,18 @@ sub scan_pattern_to_svg {
   my $counter=0;
   for my $point (@$scan_pattern) {
     
-    last if (($point->{x} - $sample_rect_x1)*$scale > $pic_width);
+    last if (
+      ($point->{x_rel})*$scale > $pic_width
+    );
+    last if (
+      $point->{row} >= $self->{settings}->{rows_to_scan}
+    );
     
     
     if(1){ 
       $group1->circle(
-        cx => $point->{x} ,
-        cy => $point->{y} ,
+        cx => $point->{x_rel} ,
+        cy => $point->{y_rel} ,
         r => $aperture_dia/2 ,
         style=>{
               'stroke'=>'none',
@@ -456,8 +466,8 @@ sub scan_pattern_to_svg {
     if( defined ($lastpoint)) {
       $group1->line(
 #           id=>'l1.'.$counter++,
-          x1=> $lastpoint->{x}, y1=>$lastpoint->{y},
-          x2=> $point->{x}    , y2=>$point->{y},
+          x1=> $lastpoint->{x_rel}, y1=>$lastpoint->{y_rel},
+          x2=> $point->{x_rel}    , y2=>$point->{y_rel},
         style=>{
               'stroke'=>'red',
               'fill'=>'none',
@@ -497,6 +507,9 @@ sub scan {
   $self->require_run("load_settings");
   
   for my $point (@{$self->scan_pattern()}) {
+  
+    last if ($point->{row} >= $self->{settings}->{rows_to_scan});
+    
     $self->go_xy( x => $point->{x}, y => $point->{y});
     eval $eval  if defined($eval);
     $subref->($point) if defined($subref);

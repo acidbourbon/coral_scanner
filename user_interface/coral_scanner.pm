@@ -7,6 +7,7 @@ use Time::HiRes;
 use POSIX qw/strftime/;
 use POSIX;
 use Device::SerialPort;
+use Data::Dumper;
 
 use SVG;
 
@@ -114,7 +115,30 @@ sub main_html {
   return " ";
 }
 
+sub scan_sample {
 
+  my $self = shift;
+  my %options = @_;
+  
+  my $tc = $self->{table_control};
+
+  $tc->home();
+  $tc->scan( eval => 'print("test");' );
+  
+  
+
+}
+
+sub scan_callback {
+  my $point=shift;
+  
+  printf("evaluate sth. at point %d %d" , $point->{row},$point->{col});
+#   my $ro = $self->{pmt_ro};
+  
+#   print $ro->count(delay => 0.5, channel => "signal");
+
+
+}
 
 
 
