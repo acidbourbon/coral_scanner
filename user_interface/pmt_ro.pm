@@ -193,7 +193,7 @@ sub signal_thresh {
   
   my $value = $options{value};
   
-  if($value){
+  if(defined($value)){
     #if value is given, write threshold
     $self->write_register(regName => "signal_thresh", value => $value+$self->{settings}->{signal_zero});
     $self->{settings}->{signal_thresh} = $value;
