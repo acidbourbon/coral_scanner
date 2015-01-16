@@ -16,6 +16,16 @@
    }
    
 
+   
+div.padded {
+     padding:10px;
+  
+}
+
+div.settings_form{
+  padding:10px;
+  padding-right:250px;
+}
 
 div.header {
     font-size:13pt;

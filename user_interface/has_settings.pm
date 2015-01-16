@@ -1,20 +1,9 @@
-package settings_subs;
+package has_settings;
 use Storable qw(lock_store lock_retrieve);
 use misc_subs;
 
 
 
-BEGIN {
-  require Exporter;
-  # set the version for version checking
-  our $VERSION = 1.00;
-  # Inherit from Exporter to export functions and variables
-  our @ISA = qw(Exporter);
-  # Functions and variables which are exported by default
-  our @EXPORT = qw(load_settings save_settings reset_settings settings_form);
-  # Functions and variables which can be optionally exported
-  #our @EXPORT_OK = qw($Var1 %Hashit func3);
-}
 
 
 sub load_settings {
@@ -52,15 +41,18 @@ sub reset_settings {
 
 sub settings_form {
   my $self=shift;
+  my %options=@_;
   my $settings = $self->load_settings();
   my $settings_desc = $self->{settings_desc};
+  
+  my $header=$options{header};
 
-  printHeader('text/html');
+  printHeader('text/html') if $header;
   
   print '
 <style>
 .hidden {
-  visibility:collapse
+  display:none;
 }
 
 span.dropt {border-bottom: thin dotted; background: #ffeedd;}
@@ -77,7 +69,7 @@ span.dropt:hover span {margin: 20px 0 0 170px; background: #ffffff; z-index:6;}
 </style>
 
   
-<form action="'.ref($self).'.pl" method="get" target="_self">
+<form action="'.ref($self).'.pl" method="get" target="_blank">
   <input type="text" name="sub" value="save_settings" class="hidden"><br>
   <table>
   ';

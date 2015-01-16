@@ -12,8 +12,9 @@ use SVG;
 
 use CGI ':standard';
 
-use settings_subs;
-# our @ISA = qw/has_settings/; # assimilate the methods of the has_settings class
+# use settings_subs;
+use has_settings;
+our @ISA = qw/has_settings/; # assimilate the methods of the has_settings class
 
 
 use pmt_ro;
@@ -54,7 +55,7 @@ sub new {
   bless($self, $class);
   
   $self->{pmt_ro} = pmt_ro->new();
-  $self->{pmt_control} = table_control->new();
+  $self->{table_control} = table_control->new();
   
   return $self;
 }
@@ -82,16 +83,30 @@ sub main_html {
     ]
   );
   
-  
+
   print h2 "Coral Scanner";
   
   print "<div id='main_body'>";
   
+  print "<p id='show_main_controls' class='quasibutton' >main controls</p>";
+  print "<div id='main_controls_container' class='stylishBox padded'>";
+  print "<svg width=480 height=260>";
+  $self->{table_control}->scan_pattern_to_svg();
+  print "</svg>";
+  print br;
+  print "some content!";
+  print "</div>";
+  
+  
   print "<p id='show_pmt_ro_settings' class='quasibutton' >pmt_ro settings</p>";
-  print "<div id='pmt_ro_settings_container' class='stylishBox hidden_by_default'>";
+  print "<div align=right id='pmt_ro_settings_container' class='stylishBox settings_form hidden_by_default'>";
   $self->{pmt_ro}->settings_form();
   print "</div>";
   
+  print "<p id='show_table_control_settings' class='quasibutton' >table_control settings</p>";
+  print "<div align=right id='table_control_settings_container' class='stylishBox settings_form hidden_by_default'>";
+  $self->{table_control}->settings_form();
+  print "</div>";
   
   print "</div>";
   

@@ -14,9 +14,9 @@ use CGI;
 
 # use has_settings;
 # our @ISA = qw/has_settings/; # assimilate the methods of the has_settings class
-use settings_subs;
 use misc_subs;
-
+use has_settings;
+our @ISA = qw/has_settings/; # assimilate the methods of the has_settings class
 
 ## methods
 
@@ -51,7 +51,6 @@ sub new {
     sample_step_size => 1,
     sample_aperture_dia => 1,
     
-    scan_pattern_svg_file => "./scan_pattern.svg",
     scan_pattern_style => "meander"
     
     
@@ -72,7 +71,6 @@ sub new {
     sample_step_size => "The step size/width for the scan pattern in mm",
     sample_aperture_dia => "Estimate of the radiation aperture in mm",
     
-    scan_pattern_svg_file => "Filename for the visualization (svg image) of the scan pattern",
     scan_pattern_style => "Defines the scan modus, available options are 'linebyline' and 'meander'"
   };
 
@@ -378,6 +376,8 @@ sub scan_pattern_to_svg {
   
   $self->require_run("load_settings");
   
+  my $svg_file = $options{svg_file};
+  
   my $scan_pattern = $self->scan_pattern(style => $style);
   
   
@@ -391,6 +391,10 @@ sub scan_pattern_to_svg {
   my $mm2pix = 1; # pixels per mm
   
   # create an SVG object with a size of 40x40 pixels
+  
+  my $pic_width = 480;
+  my $pic_height = 260;
+  
   my $svg = SVG->new(
         -printerror => 1,
         -raiseerror => 0,
@@ -401,11 +405,11 @@ sub scan_pattern_to_svg {
         #-namespace => 'mysvg',
         -inline   => 1,
         id          => 'document_element',
-  width => 800,
-  height => 600,
+    width => $pic_width,
+    height => $pic_height,
   );
   
-  my $scale = 24;
+  my $scale = 12;
   
   my $scaler = $svg->group(
       transform => "scale($scale)"
@@ -422,7 +426,7 @@ sub scan_pattern_to_svg {
     height => ($sample_rect_y2 - $sample_rect_y1)+$aperture_dia,
     style=>{
           'stroke'=>'black',
-          'fill'=>'none',
+          'fill'=>'white',
           'stroke-width'=>5/$scale,
     }
   );
@@ -430,7 +434,8 @@ sub scan_pattern_to_svg {
   my $lastpoint;
   my $counter=0;
   for my $point (@$scan_pattern) {
-    last if ($counter++ > 600);
+    
+    last if (($point->{x} - $sample_rect_x1)*$scale > $pic_width);
     
     
     if(1){ 
@@ -469,13 +474,16 @@ sub scan_pattern_to_svg {
   
   }
   
-
-  my $svgfile = $self->{settings}->{scan_pattern_svg_file};
+  if (defined($svg_file)){
+    open(SVGFILE, ">".$svg_file) or die "could not open $svg_file for writing!\n";
+    # now render the SVG object, implicitly use svg namespace
+    print SVGFILE $svg->xmlify;
+    close(SVGFILE);
+  } else {
+    print $svg->xmlify;
+  }
   
-  open(SVGFILE, ">".$svgfile);
-  # now render the SVG object, implicitly use svg namespace
-  print SVGFILE $svg->xmlify;
-  close(SVGFILE);
+  return " ";
 }
 
 

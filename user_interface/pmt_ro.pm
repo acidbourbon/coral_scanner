@@ -9,8 +9,9 @@ use POSIX;
 use FileHandle;
 use regio;
 
-use settings_subs;
 use misc_subs;
+use has_settings;
+our @ISA = qw/has_settings/; # assimilate the methods of the has_settings class
 
 ## methods
 

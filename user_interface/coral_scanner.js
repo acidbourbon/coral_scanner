@@ -23,7 +23,9 @@ $(document).ready(function(){
   timer = $.timer(function() {
   });
   
+  unfolds($("#show_main_controls"),$("#main_controls_container"));
   unfolds($("#show_pmt_ro_settings"),$("#pmt_ro_settings_container"));
+  unfolds($("#show_table_control_settings"),$("#table_control_settings_container"));
   
 });
 
