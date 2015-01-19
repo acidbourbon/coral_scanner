@@ -3,7 +3,7 @@ package coral_scanner;
 
 use strict;
 use warnings;
-use Time::HiRes;
+use Time::HiRes qw/sleep/;
 use POSIX qw/strftime/;
 use POSIX;
 use Device::SerialPort;
@@ -122,23 +122,30 @@ sub scan_sample {
   
   my $tc = $self->{table_control};
 
-  $tc->home();
-  $tc->scan( eval => 'print("test");' );
+#   $tc->home();
+#   $tc->scan( eval => 'print("test\n");' );
+  $tc->scan( object => $self, method => 'scan_callback' );
+
   
   
 
 }
 
 sub scan_callback {
-  my $point=shift;
+  my $self  = shift;
+  my $point = shift;
   
-  printf("evaluate sth. at point %d %d" , $point->{row},$point->{col});
-#   my $ro = $self->{pmt_ro};
+  printf("evaluate sth. at point %d %d\n" , $point->{row},$point->{col});
+  my $ro = $self->{pmt_ro};
   
-#   print $ro->count(delay => 0.5, channel => "signal");
+#   print $ro->count(delay => 0.1, channel => "signal");
+  sleep 2;
+  print "\n\n";
 
 
 }
+
+
 
 
 

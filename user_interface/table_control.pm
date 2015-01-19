@@ -264,7 +264,7 @@ sub go_xy {
     
     my $answer = $self->receive(wait => $travel_timeout);
   
-    if($new_x - $answer->{x_pos} < $self->{settings}->{table_precision} 
+    if(abs($new_x - $answer->{x_pos}) < $self->{settings}->{table_precision} 
     || $answer->{xend2_sw} || $answer->{xend1_sw} ){
       $self->{setpos}->{x}  = $new_x;
       $self->{realpos}->{x} = $answer->{x_pos};
@@ -272,7 +272,7 @@ sub go_xy {
     }
     
     
-    if($new_y - $answer->{y_pos} < $self->{settings}->{table_precision} 
+    if(abs($new_y - $answer->{y_pos}) < $self->{settings}->{table_precision} 
     || $answer->{yend2_sw} || $answer->{yend1_sw} ){
       $self->{setpos}->{y}  = $new_y;
       $self->{realpos}->{y} = $answer->{y_pos};
@@ -504,6 +504,9 @@ sub scan {
   my $eval   = $options{eval};
   my $subref = $options{subref};
   
+  my $method = $options{method};
+  my $object = $options{object};
+  
   $self->require_run("load_settings");
   
   for my $point (@{$self->scan_pattern()}) {
@@ -513,6 +516,9 @@ sub scan {
     $self->go_xy( x => $point->{x}, y => $point->{y});
     eval $eval  if defined($eval);
     $subref->($point) if defined($subref);
+    if(defined($object) && defined($method)){
+      $object->$method($point);
+    }
   }
   
 }
