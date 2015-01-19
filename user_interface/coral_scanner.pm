@@ -81,6 +81,7 @@ sub main_html {
       {-src => './jquery.timer.js'},
       {-src => './jquery.mwiebusch.js'},
       {-src => './coral_scanner.js'},
+#       {-src => './SVGPan.js'},
     ]
   );
   
@@ -92,6 +93,7 @@ sub main_html {
   print "<p id='show_main_controls' class='quasibutton' >main controls</p>";
   print "<div id='main_controls_container' class='stylishBox padded'>";
   print "<svg width=480 height=260>";
+#   print '<script xlink:href="SVGPan.js"/>';
   $self->{table_control}->scan_pattern_to_svg();
   print "</svg>";
   print br;
@@ -121,11 +123,17 @@ sub scan_sample {
   my %options = @_;
   
   my $tc = $self->{table_control};
+  
+  $self->{current_scan} = {};
+  $self->{current_scan}->{meta} = {points => 0};
+  $self->{current_scan}->{data} = [];
+  
 
 #   $tc->home();
 #   $tc->scan( eval => 'print("test\n");' );
   $tc->scan( object => $self, method => 'scan_callback' );
-
+  
+  $self->save_scan_ascii(filename => "./scan.dat");
   
   
 
@@ -135,17 +143,44 @@ sub scan_callback {
   my $self  = shift;
   my $point = shift;
   
-  printf("evaluate sth. at point %d %d\n" , $point->{row},$point->{col});
+  printf("Acquire PMT counts at point x,y = %3.3f,%3.3f i,j = %d,%d\n" ,$point->{x_rel},$point->{y_rel}, $point->{row},$point->{col});
   my $ro = $self->{pmt_ro};
   
-#   print $ro->count(delay => 0.1, channel => "signal");
-  sleep 2;
+  $self->{current_scan}->{meta}->{points}++;
+  my $counts = $ro->count(delay => 0.1, channel => "signal");
+  my $col = $point->{col};
+  my $row = $point->{row};
+  
+  $self->{current_scan}->{data}->[$row]->[$col] = $counts;
+  print "counts: $counts\n";
+  
+#   push(@{$self->{current_scan}->{data}},{%$point,counts => $counts});
   print "\n\n";
 
 
 }
 
+sub save_scan_ascii {
+  my $self = shift;
+  my %options = @_;
+  
+  my $filename = $options{filename};
+  
+  my @darray = @{$self->{current_scan}->{data}};
+#   @darray = sort {$a->{col} <=> $b->{col}} @darray;
+#   @darray = sort {$a->{row} <=> $b->{row}} @darray;
+  
+  open(FILE,">$filename");
+  for my $item (@darray){
+  
+    my $string = join("\t",@$item)."\n";
+#     my $string = sprintf("%d\t%d\t%d\n",$item->{row},$item->{col},$item->{counts});
+    print $string;
+    print FILE $string;
+  }
+  close(FILE);
 
+}
 
 
 
