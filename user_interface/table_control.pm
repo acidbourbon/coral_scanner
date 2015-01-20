@@ -52,7 +52,8 @@ sub new {
     sample_aperture_dia => 1,
     
     scan_pattern_style => "meander",
-    rows_to_scan => 10
+    rows_to_scan => 10,
+    mm_to_scan   => 10
     
     
   };
@@ -85,6 +86,7 @@ sub new {
     %options
   };
   bless($self, $class);
+  $self->load_settings();
   
   return $self;
 }
@@ -116,7 +118,7 @@ sub help {
 sub init_port {
   my $self = shift;
   
-  $self->require_run("load_settings");
+  #$self->require_run("load_settings");
   
   my $baudrate = $self->{settings}->{baudrate};
   my $tty = $self->{settings}->{tty};
@@ -316,7 +318,7 @@ sub scan_pattern {
   my %options = @_;
   my $style = $options{style} || $self->{settings}->{scan_pattern_style};
   
-  $self->require_run("load_settings");
+  #$self->require_run("load_settings");
   
   my $sample_rect_x1 = $self->{settings}->{sample_rect_x1};
   my $sample_rect_x2 = $self->{settings}->{sample_rect_x2};
@@ -335,6 +337,10 @@ sub scan_pattern {
   
   for( my $i = 0; $i < $steps_in_x; $i++ ) {
   
+    last if ($i >= $self->{settings}->{rows_to_scan});
+    last if ($i*$sample_step_size > $self->{settings}->{mm_to_scan});
+    
+    
     for( my $j = 0; $j < $steps_in_y; $j++ ) {
       
       if( $style eq "linebyline" ) {
@@ -378,8 +384,9 @@ sub scan_pattern_to_svg {
   my $self = shift;
   my %options = @_;
   my $style = $options{style};
+  my $html_tag = $options{html_tag};
   
-  $self->require_run("load_settings");
+  #$self->require_run("load_settings");
   
   my $svg_file = $options{svg_file};
   
@@ -391,14 +398,17 @@ sub scan_pattern_to_svg {
   my $sample_rect_y1 = $self->{settings}->{sample_rect_y1};
   my $sample_rect_y2 = $self->{settings}->{sample_rect_y2};
   
+  my $sample_rect_size_x = $sample_rect_x2 - $sample_rect_x1;
+  my $sample_rect_size_y = $sample_rect_y2 - $sample_rect_y1;
+  
   my $aperture_dia = $self->{settings}->{sample_aperture_dia};
   
-  my $mm2pix = 1; # pixels per mm
+  my $scale = 12; # pixel per mm
   
   # create an SVG object with a size of 40x40 pixels
   
-  my $pic_width = 480;
-  my $pic_height = 260;
+  my $pic_width  = ($sample_rect_size_x+5)*$scale;
+  my $pic_height = 250;
   
   my $svg = SVG->new(
         -printerror => 1,
@@ -414,27 +424,50 @@ sub scan_pattern_to_svg {
     height => $pic_height,
   );
   
-  my $scale = 12;
   
   my $scaler = $svg->group(
       transform => "scale($scale)"
   );
   
-  my $group1 = $scaler->group(
+  my $translate1 = $scaler->group(
       transform => "translate($aperture_dia,$aperture_dia)"
     );
+    
+  for(my $x=0; $x<=$sample_rect_size_x; $x+=5) {
   
-  $group1->rectangle(
-    x => -$aperture_dia/2 ,
-    width => ($sample_rect_x2 -$sample_rect_x1)+$aperture_dia,
-    y => -$aperture_dia/2 ,
-    height => ($sample_rect_y2 - $sample_rect_y1)+$aperture_dia,
-    style=>{
-          'stroke'=>'black',
-          'fill'=>'white',
-          'stroke-width'=>5/$scale,
+    $translate1->line(
+         x1=> $x, y1=>$sample_rect_size_y + ( ($x % 10) ? 2 : 1 ),
+         x2=> $x, y2=>$sample_rect_size_y+3,
+       style=>{
+             'stroke'=>'black',
+             'fill'=>'none',
+             'stroke-width'=> 1/$scale,
+  #            'stroke-opacity'=>'0.5',
+  #            'fill-opacity'=>'0.0'
+         }
+     );
+     
+    unless($x % 10){
+     $translate1->text(
+         x=>$x+0.2, y=>$sample_rect_size_y+2.5,
+         style => 'font-size: 1.5px',
+     )->cdata($x);
     }
-  );
+  }
+  
+  if(1){
+    $translate1->rectangle(
+      x => -$aperture_dia/2 ,
+      width => $sample_rect_size_x+$aperture_dia,
+      y => -$aperture_dia/2 ,
+      height => $sample_rect_size_y+$aperture_dia,
+      style=>{
+            'stroke'=>'black',
+            'fill'=>'white',
+            'stroke-width'=>5/$scale,
+      }
+    );
+  };
   
   my $lastpoint;
   my $counter=0;
@@ -443,13 +476,13 @@ sub scan_pattern_to_svg {
     last if (
       ($point->{x_rel})*$scale > $pic_width
     );
-    last if (
-      $point->{row} >= $self->{settings}->{rows_to_scan}
-    );
+#     last if (
+#       $point->{row} >= $self->{settings}->{rows_to_scan}
+#     );
     
     
     if(1){ 
-      $group1->circle(
+      $translate1->circle(
         cx => $point->{x_rel} ,
         cy => $point->{y_rel} ,
         r => $aperture_dia/2 ,
@@ -464,7 +497,7 @@ sub scan_pattern_to_svg {
     }
     
     if( defined ($lastpoint)) {
-      $group1->line(
+      $translate1->line(
 #           id=>'l1.'.$counter++,
           x1=> $lastpoint->{x_rel}, y1=>$lastpoint->{y_rel},
           x2=> $point->{x_rel}    , y2=>$point->{y_rel},
@@ -490,7 +523,9 @@ sub scan_pattern_to_svg {
     print SVGFILE $svg->xmlify;
     close(SVGFILE);
   } else {
+    print "<svg width=$pic_width height=$pic_height>" if $html_tag;
     print $svg->xmlify;
+    print "</svg>" if $html_tag;
   }
   
   return " ";
@@ -507,11 +542,11 @@ sub scan {
   my $method = $options{method};
   my $object = $options{object};
   
-  $self->require_run("load_settings");
+  #$self->require_run("load_settings");
   
   for my $point (@{$self->scan_pattern()}) {
   
-    last if ($point->{row} >= $self->{settings}->{rows_to_scan});
+#     last if ($point->{row} >= $self->{settings}->{rows_to_scan});
     
     $self->go_xy( x => $point->{x}, y => $point->{y});
     eval $eval  if defined($eval);

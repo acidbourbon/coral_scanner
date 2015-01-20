@@ -37,8 +37,7 @@ sub new {
   $self->{settings_file} = "./".__PACKAGE__.".settings";
   
   $self->{default_settings} = { # hard default settings
-    a => 1,
-    b => 2
+    time_per_pixel => 1
   };
   
   $self->{settings_desc} = {
@@ -58,6 +57,7 @@ sub new {
   $self->{pmt_ro} = pmt_ro->new();
   $self->{table_control} = table_control->new();
   
+  $self->load_settings();
   return $self;
 }
 
@@ -92,10 +92,10 @@ sub main_html {
   
   print "<p id='show_main_controls' class='quasibutton' >main controls</p>";
   print "<div id='main_controls_container' class='stylishBox padded'>";
-  print "<svg width=480 height=260>";
-#   print '<script xlink:href="SVGPan.js"/>';
-  $self->{table_control}->scan_pattern_to_svg();
-  print "</svg>";
+  print '<div style="width: 600px; height: 270px; overflow-x: scroll;">';
+  $self->{table_control}->scan_pattern_to_svg(html_tag => 1);
+  print '</div>';
+  
   print br;
   print "some content!";
   print "</div>";
@@ -147,7 +147,8 @@ sub scan_callback {
   my $ro = $self->{pmt_ro};
   
   $self->{current_scan}->{meta}->{points}++;
-  my $counts = $ro->count(delay => 0.1, channel => "signal");
+  my $delay = $self->{settings}->{time_per_pixel};
+  my $counts = $ro->count(delay => $delay, channel => "signal");
   my $col = $point->{col};
   my $row = $point->{row};
   
@@ -179,6 +180,34 @@ sub save_scan_ascii {
     print FILE $string;
   }
   close(FILE);
+
+}
+
+sub scan_ETA { #estimated time to complete a scan
+  my $self = shift;
+  
+  my $tc = $self->{table_control};
+  
+  my $speed = $tc->{settings}->{approx_speed}; #approximate speed in mm/sec
+  my $time_per_pixel = $self->{settings}->{time_per_pixel};
+  
+  my $pattern_length = 0;
+  my $last_point;
+  my $pattern = $tc->scan_pattern();
+  for my $point (@$pattern){
+    unless(defined($last_point)){
+      $pattern_length += max($point->{x},$point->{y});
+    } else {
+      my $dx = abs($point->{x} - $last_point->{x});
+      my $dy = abs($point->{y} - $last_point->{y});
+      $pattern_length += max($dx,$dy);
+    }
+    $last_point = $point;
+  }
+  
+  my $number_points = scalar(@$pattern);
+  return $pattern_length/$speed + $number_points*$time_per_pixel;
+  
 
 }
 

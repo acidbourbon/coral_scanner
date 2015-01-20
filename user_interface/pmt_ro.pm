@@ -152,7 +152,7 @@ sub spectral_scan_onesided {
   my $verbose=$options{verbose};
   my $tofile=$options{tofile};
   
-  my $file = FileHandle->new("./test.dat", 'w');
+  my $file = FileHandle->new("./cumul_spec.dat", 'w');
   
   my $spec_width = $stop-$start;
   my $bin_width = $spec_width/$bins;
