@@ -12,6 +12,7 @@ use Data::Dumper;
 use SVG;
 
 use CGI ':standard';
+use JSON;
 
 # use settings_subs;
 use has_settings;
@@ -22,6 +23,8 @@ use pmt_ro;
 use table_control;
 
 use misc_subs;
+
+use shm_manager;
 
 ## methods
 
@@ -58,6 +61,12 @@ sub new {
   $self->{table_control} = table_control->new();
   
   $self->load_settings();
+  
+  $self->{status_shm} = shm_manager->new( shmName => __PACKAGE__.".status" );
+  $self->{status_shm}->initShm(); 
+  $self->{scan_shm} = shm_manager->new( shmName => __PACKAGE__.".scan" );
+  $self->{scan_shm}->initShm(); 
+  
   return $self;
 }
 
@@ -92,12 +101,26 @@ sub main_html {
   
   print "<p id='show_main_controls' class='quasibutton' >main controls</p>";
   print "<div id='main_controls_container' class='stylishBox padded'>";
+  
   print '<div style="width: 600px; height: 270px; overflow-x: scroll;">';
   $self->{table_control}->scan_pattern_to_svg(html_tag => 1);
   print '</div>';
   
+  print '<div id="scan_container" style="width: 600px; height: 270px; overflow-x: scroll;">';
+  print '</div>';
+  
   print br;
-  print "some content!";
+  print "estimated scan duration: ".hms_string($self->scan_ETA());
+  print br;
+  
+  print "<div id='scan_status_container' class='padded'>";
+  print "<pre>";
+  $self->scan_status( report => 1 );
+  print "</pre>";
+  print "</div>";
+  
+  print "<input type='button' id='button_start_scan' value='start scan'>";
+  print "<input type='button' id='button_stop_scan' value='stop scan'>";
   print "</div>";
   
   
@@ -124,14 +147,88 @@ sub scan_sample {
   
   my $tc = $self->{table_control};
   
-  $self->{current_scan} = {};
-  $self->{current_scan}->{meta} = {points => 0};
-  $self->{current_scan}->{data} = [];
+  my $ro = $self->{pmt_ro};
+  
+  
+  
   
 
 #   $tc->home();
 #   $tc->scan( eval => 'print("test\n");' );
-  $tc->scan( object => $self, method => 'scan_callback' );
+  my $scan_pattern = $tc->scan_pattern();
+  
+  my $ETA = $self->scan_ETA();
+  
+  $self->{status_shm}->updateShm({
+    action => 'scanning',
+    abort  => 0,
+    cols => $scan_pattern->{cols},
+    rows => $scan_pattern->{rows},
+    current_col => 0,
+    current_row => 0,
+    ETA  => $ETA,
+    seconds_left => $ETA
+  });
+  
+  $self->{current_scan} = {};
+  $self->{current_scan}->{meta} = {
+    number_points => $scan_pattern->{number_points},
+    cols => $scan_pattern->{cols},
+    rows => $scan_pattern->{rows},
+    time_per_pixel => $self->{settings}->{time_per_pixel},
+    signal_thresh  => $self->{pmt_ro}->{settings}->{signal_thresh},
+    step_size => $self->{table_control}->{settings}->{sample_step_size}
+    
+  };
+  $self->{current_scan}->{data} = [];
+  
+  for my $point (@{$scan_pattern->{points}}) {
+    $tc->go_xy( x => $point->{x}, y => $point->{y});
+    
+    printf("Acquire PMT counts at point x,y = %3.3f,%3.3f i,j = %d,%d\n" ,$point->{x_rel},$point->{y_rel}, $point->{row},$point->{col});
+    
+    my $delay = $self->{settings}->{time_per_pixel};
+    my $counts = $ro->count(delay => $delay, channel => "signal");
+    my $col = $point->{col};
+    my $row = $point->{row};
+    
+    $self->{current_scan}->{data}->[$row]->[$col] = $counts;
+    print "counts: $counts\n";
+    print "\n\n";
+    
+    my $status = $self->{status_shm}->lockAndReadShm();
+    
+    if ($status->{abort}) {
+      $status = {
+        %$status,
+        action => "aborted",
+        abort => 0,
+        current_col => $col,
+        current_row => $row,
+        seconds_left => 0
+      };
+      $self->{status_shm}->writeShm($status);
+      $self->{scan_shm}->writeShm($self->{current_scan});
+      print "scan was aborted!\n";
+#       last; # stop the acquisition loop!
+      exit;
+    } else {
+      my $seconds_left = floor($status->{ETA} * (1 - $row/$status->{rows}));
+      $status = {
+        %$status,
+        current_col => $col,
+        current_row => $row,
+        seconds_left => $seconds_left
+      };
+      $self->{status_shm}->writeShm($status);
+    }
+  }
+  
+  $self->{scan_shm}->writeShm($self->{current_scan});
+  $self->{status_shm}->updateShm({
+    action => 'idle',
+    seconds_left => 0
+  });
   
   $self->save_scan_ascii(filename => "./scan.dat");
   
@@ -139,27 +236,6 @@ sub scan_sample {
 
 }
 
-sub scan_callback {
-  my $self  = shift;
-  my $point = shift;
-  
-  printf("Acquire PMT counts at point x,y = %3.3f,%3.3f i,j = %d,%d\n" ,$point->{x_rel},$point->{y_rel}, $point->{row},$point->{col});
-  my $ro = $self->{pmt_ro};
-  
-  $self->{current_scan}->{meta}->{points}++;
-  my $delay = $self->{settings}->{time_per_pixel};
-  my $counts = $ro->count(delay => $delay, channel => "signal");
-  my $col = $point->{col};
-  my $row = $point->{row};
-  
-  $self->{current_scan}->{data}->[$row]->[$col] = $counts;
-  print "counts: $counts\n";
-  
-#   push(@{$self->{current_scan}->{data}},{%$point,counts => $counts});
-  print "\n\n";
-
-
-}
 
 sub save_scan_ascii {
   my $self = shift;
@@ -194,7 +270,7 @@ sub scan_ETA { #estimated time to complete a scan
   my $pattern_length = 0;
   my $last_point;
   my $pattern = $tc->scan_pattern();
-  for my $point (@$pattern){
+  for my $point (@{$pattern->{points}}){
     unless(defined($last_point)){
       $pattern_length += max($point->{x},$point->{y});
     } else {
@@ -205,13 +281,95 @@ sub scan_ETA { #estimated time to complete a scan
     $last_point = $point;
   }
   
-  my $number_points = scalar(@$pattern);
+  my $number_points = $pattern->{number_points};
   return $pattern_length/$speed + $number_points*$time_per_pixel;
   
+}
+
+sub scan_status {
+  my $self = shift;
+  my %options = @_;
+  my $json = $options{json};
+  my $report = $options{report};
+  my $status = $self->{status_shm}->readShm();
+  
+  if($json){
+    print encode_json $status;
+    return " ";
+  }
+  if($report){
+    print "Machine is : ".$status->{action}."\n";
+    print "row ".$status->{current_row}."/".($status->{rows}-1)."\n";
+    print "col ".$status->{current_col}."/".($status->{cols}-1)."\n";
+    print "scan finished in ".hms_string($status->{seconds_left})."\n";
+    print "total duration   ".hms_string($status->{ETA})."\n";
+    print "\n";
+    return " ";
+  } else {
+    return $status;
+  }
+  
+}
+
+sub last_scan {
+  my $self = shift;
+  return $self->{scan_shm}->readShm();
 
 }
 
+sub start_scan {
+  my $self= shift;
+  daemonize();
+  $self->scan_sample();
+}
 
+sub stop_scan {
+  my $self= shift;
+  $self->{status_shm}->updateShm({abort => 1});
+  print "sent stop signal\n";
+  return " ";
+}
+
+sub scan_to_svg {
+  my $self = shift;
+  my %options = @_;
+  
+  my $tc = $self->{table_control};
+  
+  my $scan = $self->{scan_shm}->readShm();
+  
+  my $sample_rect_x1 = $tc->{settings}->{sample_rect_x1};
+  my $sample_rect_x2 = $tc->{settings}->{sample_rect_x2};
+  my $sample_rect_y1 = $tc->{settings}->{sample_rect_y1};
+  my $sample_rect_y2 = $tc->{settings}->{sample_rect_y2};
+  
+  my $sample_rect_size_x = $sample_rect_x2 - $sample_rect_x1;
+  my $sample_rect_size_y = $sample_rect_y2 - $sample_rect_y1;
+  
+  my $aperture_dia = $tc->{settings}->{sample_aperture_dia};
+  
+  my $scale = 12; # pixel per mm
+  
+  # create an SVG object with a size of 40x40 pixels
+  
+  my $pic_width  = ($sample_rect_size_x+5)*$scale;
+  my $pic_height = 250;
+  
+  my $svg = SVG->new(
+        -printerror => 1,
+        -raiseerror => 0,
+        -indent     => '  ',
+        -docroot => 'svg', #default document root element (SVG specification assumes svg). Defaults to 'svg' if undefined
+        -inline   => 1,
+        id          => 'document_element',
+    width => $pic_width,
+    height => $pic_height,
+  );
+  
+  
+
+
+}
 
 
 

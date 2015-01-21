@@ -1,5 +1,5 @@
 package misc_subs;
-
+use POSIX;
 
 BEGIN {
   require Exporter;
@@ -8,7 +8,7 @@ BEGIN {
   # Inherit from Exporter to export functions and variables
   our @ISA = qw(Exporter);
   # Functions and variables which are exported by default
-  our @EXPORT = qw(printHeader min max echo require_run test);
+  our @EXPORT = qw(printHeader min max echo require_run test hms_string daemonize);
   # Functions and variables which can be optionally exported
   #our @EXPORT_OK = qw($Var1 %Hashit func3);
 }
@@ -62,6 +62,35 @@ sub printHeader {
   }
 }
 
+sub hms_string {
+  my $s = shift;
+  
+  my $hours = floor($s/3600);
+  my $mins  = floor($s/60)-$hours*60;
+  my $secs  = floor($s)-$hours*3600-$mins*60;
+  
+  my $string = "";
+  $string .= $hours." h, " if $hours;
+  $string .= $mins." m, " if $mins;
+  $string .= $secs." s";
+  return $string;
+}
+
+sub daemonize {
+  # chdir '/' or die "Can't chdir to /: $!";
+
+  defined(my $pid = fork) or die "Can't fork: $!";
+  if($pid){
+#     printHeader('text/plain') if $isHttpReq;
+    print "this instance has terminated, the other one is a demon now\n";
+    exit;
+  }
+  open STDIN, '/dev/null' or die "Can't read /dev/null: $!";
+  open STDOUT, '>>/dev/null' or die "Can't write to /dev/null: $!";
+  open STDERR, '>>/dev/null' or die "Can't write to /dev/null: $!";
+  POSIX::setsid or die "Can't start a new session: $!";
+  umask 0;
+}
 
 
 1;

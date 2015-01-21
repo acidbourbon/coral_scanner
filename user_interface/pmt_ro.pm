@@ -60,7 +60,7 @@ sub new {
     %options
   };
   bless($self, $class);
-  
+  $self->load_settings(); 
   return $self;
 }
 
@@ -70,7 +70,7 @@ sub new {
 sub setup_regio {
   my $self = shift;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   
   my $regio_options = {
     tty => $self->{settings}->{tty},
@@ -84,7 +84,7 @@ sub apply_device_settings {
   my $self = shift;
   my %options = @_;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   $self->require_run("setup_regio");
   
   $self->signal_thresh(value => $self->{settings}->{signal_thresh});
@@ -97,7 +97,7 @@ sub spectral_scan {
   my $self = shift;
   my %options = @_;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   $self->require_run("setup_regio");
   
   die "device zero offset calibration has to be performed first!\n
@@ -139,7 +139,7 @@ sub spectral_scan_onesided {
   my $self = shift;
   my %options = @_;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   $self->require_run("setup_regio");
   
   die "device zero offset calibration has to be performed first!\n
@@ -188,7 +188,7 @@ sub signal_thresh {
   my $self = shift;
   my %options = @_;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   $self->require_run("setup_regio");
   
   my $value = $options{value};
@@ -210,7 +210,7 @@ sub veto_thresh {
   my $self = shift;
   my %options = @_;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   $self->require_run("setup_regio");
   
   my $value = $options{value};
@@ -234,7 +234,7 @@ sub dead_time {
   my $self = shift;
   my %options = @_;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   
   my $value = $options{value};
   my $unit = $options{unit}||"cycles";
@@ -271,7 +271,7 @@ sub zero_calib {
   my $self = shift;
   my %options = @_;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   $self->require_run("setup_regio");
   
   my $iterations = $options{iterations} || 26;
@@ -323,7 +323,7 @@ sub count { # count for a given time on a given channel
   my $self = shift;
   my %options = @_;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   $self->require_run("setup_regio");
   
   my $channel = $options{channel}; # can be "signal" or "veto" or "net"
@@ -366,7 +366,7 @@ sub signal_range { # determine the range and the position the signal/noise in te
   my $self = shift;
   my %options = @_;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   $self->require_run("setup_regio");
   
   my $use_zero_calib = 1;
@@ -450,7 +450,7 @@ sub find_baseline {
   my $self = shift;
   my %options = @_;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   $self->require_run("setup_regio");
   
   my $counter_addr   = $options{counter_addr};
@@ -540,7 +540,7 @@ sub read_register {
   my $self = shift;
   my %options = @_;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   $self->require_run("setup_regio");
   
   my $addr       = $options{addr};
@@ -564,7 +564,7 @@ sub write_register {
   my $self = shift;
   my %options = @_;
   
-  $self->require_run("load_settings");
+#  $self->require_run("load_settings");
   $self->require_run("setup_regio");
   
   my $addr       = $options{addr};

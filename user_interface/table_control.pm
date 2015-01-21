@@ -330,17 +330,14 @@ sub scan_pattern {
   my $sample_rect_size_y = $sample_rect_y2 - $sample_rect_y1;
   
   
-  my $steps_in_x = floor($sample_rect_size_x / $sample_step_size) +1;
+  my $steps_in_x = floor(min($sample_rect_size_x,$self->{settings}->{mm_to_scan}) / $sample_step_size) +1;
+  $steps_in_x = min($steps_in_x,  $self->{settings}->{rows_to_scan} );
   my $steps_in_y = floor($sample_rect_size_y / $sample_step_size) +1;
   
   my $coordinate_array = [];
   
   for( my $i = 0; $i < $steps_in_x; $i++ ) {
   
-    last if ($i >= $self->{settings}->{rows_to_scan});
-    last if ($i*$sample_step_size > $self->{settings}->{mm_to_scan});
-    
-    
     for( my $j = 0; $j < $steps_in_y; $j++ ) {
       
       if( $style eq "linebyline" ) {
@@ -376,21 +373,20 @@ sub scan_pattern {
   
   }
   
-  return $coordinate_array;
+  return { points => $coordinate_array, cols => $steps_in_y, rows => $steps_in_x, number_points => scalar(@$coordinate_array) };
 }
 
 sub scan_pattern_to_svg {
 
   my $self = shift;
   my %options = @_;
-  my $style = $options{style};
   my $html_tag = $options{html_tag};
   
   #$self->require_run("load_settings");
   
   my $svg_file = $options{svg_file};
   
-  my $scan_pattern = $self->scan_pattern(style => $style);
+  my $scan_pattern = $self->scan_pattern();
   
   
   my $sample_rect_x1 = $self->{settings}->{sample_rect_x1};
@@ -471,7 +467,7 @@ sub scan_pattern_to_svg {
   
   my $lastpoint;
   my $counter=0;
-  for my $point (@$scan_pattern) {
+  for my $point (@{$scan_pattern->{points}}) {
     
     last if (
       ($point->{x_rel})*$scale > $pic_width
@@ -532,31 +528,34 @@ sub scan_pattern_to_svg {
 }
 
 
-sub scan {
-  my $self = shift;
-  my %options = @_;
-  
-  my $eval   = $options{eval};
-  my $subref = $options{subref};
-  
-  my $method = $options{method};
-  my $object = $options{object};
-  
-  #$self->require_run("load_settings");
-  
-  for my $point (@{$self->scan_pattern()}) {
-  
-#     last if ($point->{row} >= $self->{settings}->{rows_to_scan});
-    
-    $self->go_xy( x => $point->{x}, y => $point->{y});
-    eval $eval  if defined($eval);
-    $subref->($point) if defined($subref);
-    if(defined($object) && defined($method)){
-      $object->$method($point);
-    }
-  }
-  
-}
+# sub scan {
+#   my $self = shift;
+#   my %options = @_;
+#   
+#   my $scan_pattern = $options{scan_pattern};
+#   unless(defined($scan_pattern)) {
+#     $scan_pattern = $self->scan_pattern();
+#   }
+#   
+#   my $eval   = $options{eval};
+#   my $subref = $options{subref};
+#   
+#   my $method = $options{method};
+#   my $object = $options{object};
+#   
+#   
+#   for my $point (@{$scan_pattern->{points}}) {
+#   
+#     
+#     $self->go_xy( x => $point->{x}, y => $point->{y});
+#     eval $eval  if defined($eval);
+#     $subref->($point) if defined($subref);
+#     if(defined($object) && defined($method)){
+#       $object->$method($point);
+#     }
+#   }
+#   
+# }
 
 
 sub set_zero {
