@@ -381,9 +381,6 @@ sub scan_pattern_to_svg {
   my $self = shift;
   my %options = @_;
   my $html_tag = $options{html_tag};
-  
-  #$self->require_run("load_settings");
-  
   my $svg_file = $options{svg_file};
   
   my $scan_pattern = $self->scan_pattern();

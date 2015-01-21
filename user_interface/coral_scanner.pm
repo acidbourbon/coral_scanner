@@ -107,6 +107,7 @@ sub main_html {
   print '</div>';
   
   print '<div id="scan_container" style="width: 600px; height: 270px; overflow-x: scroll;">';
+  $self->scan_to_svg();
   print '</div>';
   
   print br;
@@ -334,6 +335,9 @@ sub scan_to_svg {
   my $self = shift;
   my %options = @_;
   
+  my $html_tag = $options{html_tag};
+  my $svg_file = $options{svg_file};
+  
   my $tc = $self->{table_control};
   
   my $scan = $self->{scan_shm}->readShm();
@@ -366,10 +370,55 @@ sub scan_to_svg {
     height => $pic_height,
   );
   
+  my $step_size = $scan->{meta}->{step_size};
+  my $cols = $scan->{meta}->{cols};
+  my $rows = $scan->{meta}->{rows};
+  my $scale = 12;
   
-
+  my $scaler = $svg->group(
+      transform => "scale($scale)"
+  );
+  
+  my $tr1 = $scaler->group(
+      transform => "translate(0,0)"
+    );
+    
+  for (my $i=0; $i < $rows; $i++) {
+    for (my $j=0; $j < $cols; $j++) {
+      my $counts = $scan->{data}->[$i]->[$j];
+      my ($r,$g,$b) = false_color($counts,800,4000);
+      #= ($i*10,$j*10,$i*$j);
+      $tr1->rectangle(
+        x => $i*$step_size,
+        y => $j*$step_size,
+        width => $step_size*.9,
+        height => $step_size*.9,
+        title => $counts,
+        style =>{
+            'stroke'=>'none',
+            'fill'=>"rgb($r,$g,$b)",
+        });
+    }
+  }
+  
+  
+  if (defined($svg_file)){
+    open(SVGFILE, ">".$svg_file) or die "could not open $svg_file for writing!\n";
+    # now render the SVG object, implicitly use svg namespace
+    print SVGFILE $svg->xmlify;
+    close(SVGFILE);
+  } else {
+    print "<svg width=$pic_width height=$pic_height>" if $html_tag;
+    print $svg->xmlify;
+    print "</svg>" if $html_tag;
+  }
+  
+  return " ";
 
 }
+
+
+
 
 
 

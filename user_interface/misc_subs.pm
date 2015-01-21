@@ -8,7 +8,7 @@ BEGIN {
   # Inherit from Exporter to export functions and variables
   our @ISA = qw(Exporter);
   # Functions and variables which are exported by default
-  our @EXPORT = qw(printHeader min max echo require_run test hms_string daemonize);
+  our @EXPORT = qw(printHeader min max echo require_run test hms_string daemonize false_color);
   # Functions and variables which can be optionally exported
   #our @EXPORT_OK = qw($Var1 %Hashit func3);
 }
@@ -90,6 +90,16 @@ sub daemonize {
   open STDERR, '>>/dev/null' or die "Can't write to /dev/null: $!";
   POSIX::setsid or die "Can't start a new session: $!";
   umask 0;
+}
+
+sub false_color {
+  my $val = shift;
+  my $bot = shift;
+  my $top = shift;
+  
+  my $c = floor( abs($val/($top-$bot))*255);
+  return ($c,$c,$c);
+
 }
 
 
