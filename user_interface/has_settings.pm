@@ -1,18 +1,27 @@
 package has_settings;
 use Storable qw(lock_store lock_retrieve);
 use misc_subs;
-
+use JSON;
 
 
 
 
 sub load_settings {
   my $self=shift;
+  my %options = @_;
+  my $json = $options{json};
+  
   my $settings_file = $self->{settings_file};
   
   if ( -e $settings_file ) {
     $self->{settings} = {%{$self->{settings}}, %{lock_retrieve($settings_file)}};
   }
+  
+  if($json){
+    print encode_json $self->{settings};
+    return " ";
+  }
+  
   return $self->{settings};
 }
 

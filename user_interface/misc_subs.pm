@@ -97,7 +97,7 @@ sub false_color {
   my $bot = shift;
   my $top = shift;
   
-  my $c = floor( abs($val/($top-$bot))*255);
+  my $c = min(255,max(0,floor( ($val-$bot)/($top-$bot)*255)));
   return ($c,$c,$c);
 
 }

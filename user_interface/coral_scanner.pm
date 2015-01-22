@@ -40,11 +40,19 @@ sub new {
   $self->{settings_file} = "./".__PACKAGE__.".settings";
   
   $self->{default_settings} = { # hard default settings
-    time_per_pixel => 1
+    time_per_pixel => 1,
+    approx_upper_rate => 4000,
+    plot_lower_limit  => 0,
+    plot_upper_limit  => 4000,
   };
   
   $self->{settings_desc} = {
-
+    time_per_pixel => "time in seconds to integrate the counts of the PMT at a given coordinate",
+    approx_upper_rate => "upper boundary of the counting rate in counts/sec,
+    is used for setting the value range of the plot",
+    plot_lower_limit  => "lower contrast setting for the plot",
+    plot_upper_limit  => "upper contrast setting for the plot",
+    
   };
 
   $self->{has_run} = {}; # remember which subs already have run
@@ -82,12 +90,14 @@ sub main_html {
     
     -style => [
       {'src' => './styles.css'},
-      {'src' => './coral_scanner.css'}
+      {'src' => './coral_scanner.css'},
+      {'src' => './jquery-ui.css'}
     ],
     
     -script => [
       {-src => './jquery.min.js'},
       {-src => './jquery.timer.js'},
+      {-src => './jquery-ui.js'},
       {-src => './jquery.mwiebusch.js'},
       {-src => './coral_scanner.js'},
 #       {-src => './SVGPan.js'},
@@ -107,21 +117,50 @@ sub main_html {
   print '</div>';
   
   print '<div id="scan_container" style="width: 600px; height: 270px; overflow-x: scroll;">';
-  $self->scan_to_svg();
+#   $self->scan_to_svg();
   print '</div>';
-  
+  print br; 
+  print "plot contrast: ";
+  print "<span id='amount'></span>";
+  print br;
+  print '<div id="slider-range"></div>';
+  print br;
+  print "<input type='button' value='replot' id='button_replot'></input>";
+  print br;
   print br;
   print "estimated scan duration: ".hms_string($self->scan_ETA());
   print br;
+  print "Machine is : <span id='action'></span>";
+  print br;
+  print "row : <span id='current_row'></span>/<span id='rows'></span>";
+  print br;
+  print "col : <span id='current_col'></span>/<span id='cols'></span>";
+  print br;
+  print "time left : <span id='time_left'></span>";
+  print br;
+  print "<div id='progressbar'></div>";
   
-  print "<div id='scan_status_container' class='padded'>";
-  print "<pre>";
-  $self->scan_status( report => 1 );
-  print "</pre>";
-  print "</div>";
+#   print "<div id='scan_status_container' class='padded'>";
+#   print "<pre>";
+#   $self->scan_status( report => 1 );
+#   print "</pre>";
+#   print "</div>";
   
+  print "<input type='button' id='button_home' value='home'>";
   print "<input type='button' id='button_start_scan' value='start scan'>";
   print "<input type='button' id='button_stop_scan' value='stop scan'>";
+  print "<input type='button' id='button_test' value='test'>";
+  print br br;
+  print "PMT test:";
+  print br;
+  print "<input type='button' id='button_thresh' value='set threshold'>";
+  print "<input type='text' id='text_thresh' value=''></input>";
+  print br;
+  print "<input type='button' id='button_count' value='count'>";
+  print "<input type='text' id='text_count' value='1'></input>";
+  print " [s] ";
+  print "<input type='text' id='text_count_out' value='' readonly></input>";
+  
   print "</div>";
   
   
@@ -294,6 +333,11 @@ sub scan_status {
   my $report = $options{report};
   my $status = $self->{status_shm}->readShm();
   
+  $status = { %$status,
+    time_left => hms_string($status->{seconds_left}),
+    duration  => hms_string($status->{ETA})
+  };
+  
   if($json){
     print encode_json $status;
     return " ";
@@ -322,6 +366,20 @@ sub start_scan {
   my $self= shift;
   daemonize();
   $self->scan_sample();
+}
+
+sub home {
+  my $self= shift;
+  daemonize();
+  $self->{status_shm}->updateShm({
+    action => "homing"
+  });
+  
+  $self->{table_control}->home();
+  
+  $self->{status_shm}->updateShm({
+    action => "idle"
+  });
 }
 
 sub stop_scan {
@@ -373,7 +431,6 @@ sub scan_to_svg {
   my $step_size = $scan->{meta}->{step_size};
   my $cols = $scan->{meta}->{cols};
   my $rows = $scan->{meta}->{rows};
-  my $scale = 12;
   
   my $scaler = $svg->group(
       transform => "scale($scale)"
@@ -386,13 +443,17 @@ sub scan_to_svg {
   for (my $i=0; $i < $rows; $i++) {
     for (my $j=0; $j < $cols; $j++) {
       my $counts = $scan->{data}->[$i]->[$j];
-      my ($r,$g,$b) = false_color($counts,800,4000);
+      my ($r,$g,$b) = false_color(
+        $counts/$self->{settings}->{time_per_pixel},
+        $self->{settings}->{plot_lower_limit},
+        $self->{settings}->{plot_upper_limit}
+      );
       #= ($i*10,$j*10,$i*$j);
       $tr1->rectangle(
         x => $i*$step_size,
         y => $j*$step_size,
-        width => $step_size*.9,
-        height => $step_size*.9,
+        width => $step_size*1.05,
+        height => $step_size*1.05,
         title => $counts,
         style =>{
             'stroke'=>'none',
