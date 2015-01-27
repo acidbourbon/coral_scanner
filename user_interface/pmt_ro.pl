@@ -31,7 +31,9 @@ my $dispatch_table = {
   spectral_scan => 1,
   spectral_scan_onesided => 1,
   dead_time => 1,
-  apply_device_settings => 1
+  apply_device_settings => 1,
+  spectrum_JSON => 1,
+  clear_spectrum => 1
 };
 
 CGI_dispatch::dispatch_sub(package => $self, dispatch_table => $dispatch_table);

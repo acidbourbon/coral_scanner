@@ -7,7 +7,7 @@ var timer;
 var scan_meta;
 var coral_scanner_settings;
 var pmt_ro_settings;
-
+var spectrum;
 
 
 
@@ -28,6 +28,7 @@ $(document).ready(function(){
   unfolds($("#show_main_controls"),$("#main_controls_container"));
   unfolds($("#show_pmt_ro_settings"),$("#pmt_ro_settings_container"));
   unfolds($("#show_table_control_settings"),$("#table_control_settings_container"));
+  unfolds($("#show_pmt_spectrum"),$("#pmt_spectrum_container"));
   
   $("#button_home").click(function(){
     home();
@@ -43,6 +44,20 @@ $(document).ready(function(){
   $("#button_replot").click(function(){
     store_slider_settings();
     get_scan_svg();
+  });
+  
+  $("#button_program_padiwa").click(function(){
+    apply_device_settings();
+  });
+  $("#button_plot_spectrum").click(function(){
+    spectrum = get_spectrum_JSON();
+    plot_spectrum();
+  });
+  $("#button_clear_spectrum").click(function(){
+    clear_spectrum();
+  });
+  $("#button_record_spectrum").click(function(){
+    record_spectrum();
   });
   
   $("#button_count").click(function(){
@@ -70,6 +85,10 @@ $(document).ready(function(){
     signal_thresh();
   });
   
+  $('#checkbox_log_spectrum').change(function(){
+//     alert($(this).prop('checked'));
+    plot_spectrum();
+  });
   
   $( "#progressbar" ).progressbar({
     value: 100
@@ -78,15 +97,110 @@ $(document).ready(function(){
   get_coral_scanner_settings();
   get_pmt_ro_settings();
   
-
+  spectrum = get_spectrum_JSON();
+  plot_spectrum();
   
   get_scan_meta();
 //   get_scan_svg();
   
   set_clear_timer();
+//   make_flot();
   
 });
 
+
+
+function make_flot(){
+  
+  var d1 = [];
+                for (var i = 0; i < 14; i += 0.5) {
+                        d1.push([i, Math.sin(i)]);
+                }
+
+                var d2 = [[0, 3], [4, 8], [8, 5], [9, 13]];
+
+                var d3 = [];
+                for (var i = 0; i < 14; i += 0.5) {
+                        d3.push([i, Math.cos(i)]);
+                }
+
+                var d4 = [];
+                for (var i = 0; i < 14; i += 0.1) {
+                        d4.push([i, Math.sqrt(i * 10)]);
+                }
+
+                var d5 = [];
+                for (var i = 0; i < 14; i += 0.5) {
+                        d5.push([i, Math.sqrt(i)]);
+                }
+
+                var d6 = [];
+                for (var i = 0; i < 14; i += 0.5 + Math.random()) {
+                        d6.push([i, Math.sqrt(2*i + Math.sin(i) + 5)]);
+                }
+
+                $.plot("#spectrum_plot_container", [{
+                        data: d1,
+                        lines: { show: true, fill: true }
+                }, {
+                        data: d2,
+                        bars: { show: true }
+                }, {
+                        data: d3,
+                        points: { show: true }
+                }, {
+                        data: d4,
+                        lines: { show: true }
+                }, {
+                        data: d5,
+                        lines: { show: true },
+                        points: { show: true }
+                }, {
+                        data: d6,
+                        lines: { show: true, steps: true }
+                }]);
+  
+  
+}
+
+function plot_spectrum() {
+  var data = [];
+  for (x in spectrum){
+    data.push(
+      {
+        data: spectrum[x].data,
+        bars: { show: true ,  barWidth: 0.8*parseFloat(spectrum[x].meta.bin_width), align: "center" },
+        label: x
+      }
+    );
+  }
+  
+  var options = {
+    selection: {
+      mode: "xy"
+    },
+    xaxis : {
+      autoscaleMargin: .1
+    },
+    legend : {
+      position : "nw"
+    }
+  };
+  
+  
+  if($('#checkbox_log_spectrum').prop('checked')){
+      $.extend(options,{
+        yaxis: {
+          transform: function (v) { return Math.log(v); },
+          inverseTransform: function (v) { return Math.exp(v); }
+        }
+      });
+  }
+
+  
+  flot_w_selectZoom('#spectrum_plot_container', data, options);
+  
+}
 
 
 
@@ -161,21 +275,21 @@ function get_scan_meta(){
 }
 
 
-function get_scan_status_report(){
-  $.ajax({
-        url:       "coral_scanner.pl",
-        cache:     false,
-        async:     true,
-        dataType:  "text",
-        data:      {
-          sub        : "scan_status",
-          report     : "true"
-        },
-        success:   function(answer) {
-          $("#scan_status_container").html("<pre>"+answer+"</pre>");
-        }
-     });
-}
+// function get_scan_status_report(){
+//   $.ajax({
+//         url:       "coral_scanner.pl",
+//         cache:     false,
+//         async:     true,
+//         dataType:  "text",
+//         data:      {
+//           sub        : "scan_status",
+//           report     : "true"
+//         },
+//         success:   function(answer) {
+//           $("#scan_status_container").html("<pre>"+answer+"</pre>");
+//         }
+//      });
+// }
 
 function get_scan_status(){
   $.ajax({
@@ -207,6 +321,20 @@ function home(){
         dataType:  "text",
         data:      {
           sub        : "home"
+        },
+        success:   function(answer) {
+        }
+     });
+}
+
+function apply_device_settings(){
+  $.ajax({
+        url:       "pmt_ro.pl",
+        cache:     false,
+        async:     false,
+        dataType:  "text",
+        data:      {
+          sub        : "apply_device_settings"
         },
         success:   function(answer) {
         }
@@ -286,4 +414,53 @@ function load_settings(url){
         }
      });
   return return_obj;
+}
+
+function get_spectrum_JSON(){
+  var return_obj;
+  $.ajax({
+        url:       "pmt_ro.pl",
+        cache:     false,
+        async:     false,
+        dataType:  "json",
+        data:      {
+            sub      : "spectrum_JSON",
+        },
+        success:   function(answer) {
+          return_obj = answer;
+        }
+     });
+  return return_obj;
+}
+
+function clear_spectrum(){
+  $.ajax({
+        url:       "pmt_ro.pl",
+        cache:     false,
+        async:     false,
+        dataType:  "text",
+        data:      {
+            sub      : "clear_spectrum",
+        },
+        success:   function(answer) {
+          alert(answer);
+        }
+     });
+}
+
+function record_spectrum(){
+  $.ajax({
+        url:       "coral_scanner.pl",
+        cache:     false,
+        async:     true,
+        dataType:  "text",
+        data:      {
+            sub      : "record_spectrum",
+            name     : $('#text_spectrum_name').val()
+        },
+        success:   function(answer) {
+          spectrum = get_spectrum_JSON();
+          plot_spectrum();
+        }
+     });
 }

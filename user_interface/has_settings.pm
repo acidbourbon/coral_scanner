@@ -26,10 +26,9 @@ sub load_settings {
 }
 
 sub save_settings {
+# make sure load settings is executed first, or you will lose your data!
   my $self=shift;
   my %options = @_;
-  
-  $self->require_run("load_settings");
   
   my $settings_file = $self->{settings_file};
   

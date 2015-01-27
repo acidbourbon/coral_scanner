@@ -9,6 +9,9 @@ use POSIX;
 use FileHandle;
 use regio;
 
+use shm_manager;
+use JSON;
+
 use misc_subs;
 use has_settings;
 our @ISA = qw/has_settings/; # assimilate the methods of the has_settings class
@@ -48,7 +51,11 @@ sub new {
     is_calibrated => 0,
     dead_time => 265, # corresponds to 2 us dead time
     signal_thresh => 0,
-    veto_thresh => 0
+    veto_thresh => 0,
+    spectrum_start => -2000,
+    spectrum_stop  => 0,
+    spectrum_bins  => 24,
+    spectrum_delay  => 1
   };
 
   $self->{has_run} = {}; # remember which subs already have run
@@ -60,7 +67,12 @@ sub new {
     %options
   };
   bless($self, $class);
-  $self->load_settings(); 
+  $self->load_settings();
+  
+  $self->{spectrum_shm} = shm_manager->new(
+    shmPath => "./",
+    shmName => __PACKAGE__.".spectrum" );
+  $self->{spectrum_shm}->initShm(); 
   return $self;
 }
 
@@ -93,47 +105,47 @@ sub apply_device_settings {
   return;
 }
 
-sub spectral_scan {
-  my $self = shift;
-  my %options = @_;
-  
-#  $self->require_run("load_settings");
-  $self->require_run("setup_regio");
-  
-  die "device zero offset calibration has to be performed first!\n
-  run subroutine zero_calib!\n" unless $self->{settings}->{is_calibrated};
-  
-  my $start=$options{start};
-  my $stop=$options{stop};
-  my $bins=$options{bins}||64;
-  my $delay=$options{delay}||1;
-  my $verbose=$options{verbose};
-  
-  my $spec_width = $stop-$start;
-  my $bin_width = $spec_width/$bins;
-  
-  my $file = FileHandle->new("./test.dat", 'w');
-  
-  my $counts;
-  my $bin_pos;
-  my $spectrum;
-  
-  print "#bin\t#bin_pos\t#counts\n" if $verbose;
-  for (my $i=0; $i<$bins; $i++){
-    $self->veto_thresh(value => floor($start+$bin_width*$i) );
-    $self->signal_thresh(value => floor($start+$bin_width*($i+1)) );
-    $bin_pos = floor($start+$bin_width*($i+0.5));
-    $counts = $self->count(channel => "net", delay => $delay);
-    $spectrum->{$i} = { 
-      counts => $counts,
-      bin_pos => $bin_pos
-    };
-    print "$i\t$bin_pos\t$counts\n" if $verbose;
-    print $file "$i\t$bin_pos\t$counts\n";
-  }
-  return $spectrum;
-  
-}
+# sub spectral_scan {
+#   my $self = shift;
+#   my %options = @_;
+#   
+# #  $self->require_run("load_settings");
+#   $self->require_run("setup_regio");
+#   
+#   die "device zero offset calibration has to be performed first!\n
+#   run subroutine zero_calib!\n" unless $self->{settings}->{is_calibrated};
+#   
+#   my $start=$options{start};
+#   my $stop=$options{stop};
+#   my $bins=$options{bins}||64;
+#   my $delay=$options{delay}||1;
+#   my $verbose=$options{verbose};
+#   
+#   my $spec_width = $stop-$start;
+#   my $bin_width = $spec_width/$bins;
+#   
+#   my $file = FileHandle->new("./test.dat", 'w');
+#   
+#   my $counts;
+#   my $bin_pos;
+#   my $spectrum;
+#   
+#   print "#bin\t#bin_pos\t#counts\n" if $verbose;
+#   for (my $i=0; $i<$bins; $i++){
+#     $self->veto_thresh(value => floor($start+$bin_width*$i) );
+#     $self->signal_thresh(value => floor($start+$bin_width*($i+1)) );
+#     $bin_pos = floor($start+$bin_width*($i+0.5));
+#     $counts = $self->count(channel => "net", delay => $delay);
+#     $spectrum->{$i} = { 
+#       counts => $counts,
+#       bin_pos => $bin_pos
+#     };
+#     print "$i\t$bin_pos\t$counts\n" if $verbose;
+#     print $file "$i\t$bin_pos\t$counts\n";
+#   }
+#   return $spectrum;
+#   
+# }
 
 sub spectral_scan_onesided {
   my $self = shift;
@@ -145,12 +157,12 @@ sub spectral_scan_onesided {
   die "device zero offset calibration has to be performed first!\n
   run subroutine zero_calib!\n" unless $self->{settings}->{is_calibrated};
   
-  my $start=$options{start};
-  my $stop=$options{stop};
-  my $bins=$options{bins}||64;
-  my $delay=$options{delay}||1;
-  my $verbose=$options{verbose};
-  my $tofile=$options{tofile};
+  my $start = (defined($options{start})) ? ($options{start}) : ($self->{settings}->{spectrum_start});
+  my $stop  = (defined($options{stop}))  ? ($options{stop})  : ($self->{settings}->{spectrum_stop});
+  my $bins  = (defined($options{bins}))  ? ($options{bins})  : ($self->{settings}->{spectrum_bins});
+  my $delay = (defined($options{delay})) ? ($options{delay}) : ($self->{settings}->{spectrum_delay});
+  my $name  = (defined($options{name}))  ? ($options{name})  : "signal";
+  my $verbose = $options{verbose};
   
   my $file = FileHandle->new("./cumul_spec.dat", 'w');
   
@@ -158,23 +170,31 @@ sub spectral_scan_onesided {
   my $bin_width = $spec_width/$bins;
   
   my $counts;
-  my $bin_pos;
-  my $spectrum;
+  my $thresh;
+  my $spectrum = {};
   
-  my $cumulation;
+  $spectrum->{meta} = {
+    bin_width  => $bin_width,
+    spec_width => $spec_width,
+    delay      => $delay,
+    start      => $start,
+    stop       => $stop
+  };
+  $spectrum->{data} = [];
   
-  print "#bin\t#bin_pos\t#counts\n" if $verbose;
+
+  $self->{spectrum_shm}->updateShm({$name => $spectrum}); #write empty spectrum
+  
+  print "#bin\t#thresh\t#counts\n" if $verbose;
   for (my $i=0; $i<$bins; $i++){
 #     $self->veto_thresh(value => floor($start+$bin_width*$i) );
     $self->signal_thresh(value => floor($start+$bin_width*$i) );
-    $bin_pos = floor($start+$bin_width*($i+0.5));
+    $thresh = floor($start+$bin_width*$i);
     $counts = $self->count(channel => "signal", delay => $delay);
-    $spectrum->{$i} = { 
-      counts => $counts,
-      bin_pos => $bin_pos
-    };
-    print "$i\t$bin_pos\t$counts\n" if $verbose;
-    print $file "$i\t$bin_pos\t$counts\n";
+    $spectrum->{data}->[$i] = [$thresh,$counts];
+    $self->{spectrum_shm}->updateShm({ $name => $spectrum }); #update spectrum
+    print "$i\t$thresh\t$counts\n" if $verbose;
+    print $file "$i\t$thresh\t$counts\n";
     
   }
   
@@ -182,6 +202,24 @@ sub spectral_scan_onesided {
   return $spectrum;
   
 }
+
+sub spectrum_JSON {
+  my $self = shift;
+  
+  my $spectrum = $self->{spectrum_shm}->readShm();
+  print encode_json $spectrum;
+  return " ";
+
+}
+
+sub clear_spectrum {
+  my $self = shift;
+  
+  my $spectrum = {};
+  $self->{spectrum_shm}->writeShm($spectrum);
+  return "cleared";
+}
+
 
 sub signal_thresh {
   # reads or sets signal threshold

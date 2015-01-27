@@ -16,8 +16,13 @@ sub new {
   };
   
   die "shm_manager must get an shmName" unless defined($self->{shmName});
-  
-  $self->{shmFile} = "/dev/shm/".$self->{shmName};
+  if(defined($self->{shmPath})){
+    $self->{shmPath} =~ s/\/+$//; #remove trailing "/"
+    $self->{shmPath} .= "/";
+    $self->{shmFile} = $self->{shmPath}.$self->{shmName};
+  } else {
+    $self->{shmFile} = "/dev/shm/".$self->{shmName};
+  }
 #   $self->{dataDir} = $self->{shmFile}."_data";
 #   $self->{dataFile} = $self->{dataDir}."/data";
   

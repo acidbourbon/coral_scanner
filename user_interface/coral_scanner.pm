@@ -98,6 +98,8 @@ sub main_html {
       {-src => './jquery.min.js'},
       {-src => './jquery.timer.js'},
       {-src => './jquery-ui.js'},
+      {-src => './jquery.flot.js'},
+      {-src => './jquery.flot.selection.js'},
       {-src => './jquery.mwiebusch.js'},
       {-src => './coral_scanner.js'},
 #       {-src => './SVGPan.js'},
@@ -125,7 +127,7 @@ sub main_html {
   print br;
   print '<div id="slider-range"></div>';
   print br;
-  print "<input type='button' value='replot' id='button_replot'></input>";
+  print "<input type='button' value='replot' id='button_replot'>";
   print br;
   print br;
   print "estimated scan duration: ".hms_string($self->scan_ETA());
@@ -149,20 +151,34 @@ sub main_html {
   print "<input type='button' id='button_home' value='home'>";
   print "<input type='button' id='button_start_scan' value='start scan'>";
   print "<input type='button' id='button_stop_scan' value='stop scan'>";
+  print "<input type='button' id='button_program_padiwa' value='program padiwa settings'>";
   print "<input type='button' id='button_test' value='test'>";
   print br br;
   print "PMT test:";
   print br;
   print "<input type='button' id='button_thresh' value='set threshold'>";
-  print "<input type='text' id='text_thresh' value=''></input>";
+  print "<input type='text' id='text_thresh' value=''>";
   print br;
   print "<input type='button' id='button_count' value='count'>";
-  print "<input type='text' id='text_count' value='1'></input>";
+  print "<input type='text' id='text_count' value='1'>";
   print " [s] ";
-  print "<input type='text' id='text_count_out' value='' readonly></input>";
+  print "<input type='text' id='text_count_out' value='' readonly>";
+  
+  
   
   print "</div>";
   
+  print "<p id='show_pmt_spectrum' class='quasibutton' >spectrum</p>";
+  print "<div id='pmt_spectrum_container' class='stylishBox padded'>";
+  print '<div id="spectrum_plot_container" style="width:600px;height:300px"></div>';
+  print "<input type='button' id='button_plot_spectrum' value='plot spectrum'>";
+  print "<input type='button' id='button_clear_spectrum' value='clear spectrum'>";
+  print "<label><input type='checkbox' id='checkbox_log_spectrum' >log y</label>";
+  print br br;
+  print "record name: ";
+  print "<input type='text' id='text_spectrum_name' value='signal'>";
+  print "<input type='button' id='button_record_spectrum' value='record spectrum'>";
+  print "</div>";
   
   print "<p id='show_pmt_ro_settings' class='quasibutton' >pmt_ro settings</p>";
   print "<div align=right id='pmt_ro_settings_container' class='stylishBox settings_form hidden_by_default'>";
@@ -366,6 +382,19 @@ sub start_scan {
   my $self= shift;
   daemonize();
   $self->scan_sample();
+}
+
+sub record_spectrum {
+  my $self= shift;
+  my %options = @_;
+  my $name = $options{name} || "signal";
+  
+  daemonize();
+  $self->{pmt_ro}->spectral_scan_onesided(
+    name => $name
+  );
+  
+  return " ";
 }
 
 sub home {
