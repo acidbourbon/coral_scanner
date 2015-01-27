@@ -6,11 +6,12 @@ function unfold(button,container){
     new_button_text = button_text.replace("[-]","[+]");
   } else {
     new_button_text = button_text.replace("[+]","[-]");
+    container.trigger('isVisible');
   }
   container.fadeToggle();
   $('html, body').animate({
       scrollTop: container.offset().top
-  }, 2000);
+  }, 1000);
   button.html(new_button_text);
 }
 
@@ -28,6 +29,15 @@ function unfolds(button,container){
   }
   
 }
+
+// use unfold with an event trigger:
+
+//   unfolds($("#show_scan_pattern"),$("#scan_pattern_container"));
+//   $("#scan_pattern_container").bind('isVisible',function(){
+//     alert("div becomes visible");
+//     get_pattern_svg();
+//   });
+
 
 function flot_w_selectZoom(id,data,options) {
   $.plot(id, data, options);

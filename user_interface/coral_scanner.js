@@ -30,6 +30,11 @@ $(document).ready(function(){
   unfolds($("#show_table_control_settings"),$("#table_control_settings_container"));
   unfolds($("#show_pmt_spectrum"),$("#pmt_spectrum_container"));
   
+  unfolds($("#show_scan_pattern"),$("#scan_pattern_container"));
+  $("#scan_pattern_container").bind('isVisible',function(){
+    get_pattern_svg();
+  });
+  
   $("#button_home").click(function(){
     home();
   });
@@ -191,7 +196,10 @@ function plot_spectrum() {
   if($('#checkbox_log_spectrum').prop('checked')){
       $.extend(options,{
         yaxis: {
-          transform: function (v) { return Math.log(v); },
+          min: 0.1,
+          ticks: [0.001,0.01,0.1,1,10,100,1000,10000,100000,1e6],
+          transform: function(v) { return v == 0 ? Math.log(0.00001) : Math.log(v) },
+//           transform: function (v) { return Math.log(v+0.0001); },
           inverseTransform: function (v) { return Math.exp(v); }
         }
       });
@@ -255,6 +263,21 @@ function get_scan_svg(){
         },
         success:   function(answer) {
           $("#scan_container").html(answer);
+        }
+     });
+}
+
+function get_pattern_svg(){
+  $.ajax({
+        url:       "table_control.pl",
+        cache:     false,
+        async:     true,
+        dataType:  "text",
+        data:      {
+          sub        : "scan_pattern_to_svg"
+        },
+        success:   function(answer) {
+          $("#pattern_svg_container").html(answer);
         }
      });
 }
@@ -415,6 +438,8 @@ function load_settings(url){
      });
   return return_obj;
 }
+
+
 
 function get_spectrum_JSON(){
   var return_obj;

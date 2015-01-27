@@ -114,9 +114,7 @@ sub main_html {
   print "<p id='show_main_controls' class='quasibutton' >main controls</p>";
   print "<div id='main_controls_container' class='stylishBox padded'>";
   
-  print '<div style="width: 600px; height: 270px; overflow-x: scroll;">';
-  $self->{table_control}->scan_pattern_to_svg(html_tag => 1);
-  print '</div>';
+
   
   print '<div id="scan_container" style="width: 600px; height: 270px; overflow-x: scroll;">';
 #   $self->scan_to_svg();
@@ -180,6 +178,13 @@ sub main_html {
   print "<input type='button' id='button_record_spectrum' value='record spectrum'>";
   print "</div>";
   
+  print "<p id='show_scan_pattern' class='quasibutton' >scan pattern</p>";
+  print "<div id='scan_pattern_container' class='stylishBox padded hidden_by_default'>";
+  print '<div id="pattern_svg_container" style="width: 600px; height: 270px; overflow-x: scroll;">';
+#   $self->{table_control}->scan_pattern_to_svg(html_tag => 1);
+  print '</div>';
+  print "</div>";
+  
   print "<p id='show_pmt_ro_settings' class='quasibutton' >pmt_ro settings</p>";
   print "<div align=right id='pmt_ro_settings_container' class='stylishBox settings_form hidden_by_default'>";
   $self->{pmt_ro}->settings_form();
@@ -202,17 +207,9 @@ sub scan_sample {
   my %options = @_;
   
   my $tc = $self->{table_control};
-  
   my $ro = $self->{pmt_ro};
   
-  
-  
-  
-
-#   $tc->home();
-#   $tc->scan( eval => 'print("test\n");' );
   my $scan_pattern = $tc->scan_pattern();
-  
   my $ETA = $self->scan_ETA();
   
   $self->{status_shm}->updateShm({
@@ -238,6 +235,8 @@ sub scan_sample {
   };
   $self->{current_scan}->{data} = [];
   
+  my $points_scanned = 0;
+  
   for my $point (@{$scan_pattern->{points}}) {
     $tc->go_xy( x => $point->{x}, y => $point->{y});
     
@@ -247,6 +246,7 @@ sub scan_sample {
     my $counts = $ro->count(delay => $delay, channel => "signal");
     my $col = $point->{col};
     my $row = $point->{row};
+    $points_scanned += 1;
     
     $self->{current_scan}->{data}->[$row]->[$col] = $counts;
     print "counts: $counts\n";
@@ -259,8 +259,8 @@ sub scan_sample {
         %$status,
         action => "aborted",
         abort => 0,
-        current_col => $col,
-        current_row => $row,
+        current_col => ($col+1),
+        current_row => ($row+1),
         seconds_left => 0
       };
       $self->{status_shm}->writeShm($status);
@@ -269,11 +269,12 @@ sub scan_sample {
 #       last; # stop the acquisition loop!
       exit;
     } else {
-      my $seconds_left = floor($status->{ETA} * (1 - $row/$status->{rows}));
+#       my $seconds_left = floor($status->{ETA} * (1 - $row/$status->{rows}));
+      my $seconds_left = floor($status->{ETA} * (1 - $points_scanned/$scan_pattern->{number_points}));
       $status = {
         %$status,
-        current_col => $col,
-        current_row => $row,
+        current_col => ($col+1),
+        current_row => ($row+1),
         seconds_left => $seconds_left
       };
       $self->{status_shm}->writeShm($status);
