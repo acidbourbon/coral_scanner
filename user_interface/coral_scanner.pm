@@ -185,6 +185,11 @@ sub main_html {
   print '</div>';
   print "</div>";
   
+  print "<p id='show_coral_scanner_settings' class='quasibutton' >coral scanner settings</p>";
+  print "<div align=right id='coral_scanner_settings_container' class='stylishBox settings_form hidden_by_default'>";
+  $self->settings_form();
+  print "</div>";
+  
   print "<p id='show_pmt_ro_settings' class='quasibutton' >pmt_ro settings</p>";
   print "<div align=right id='pmt_ro_settings_container' class='stylishBox settings_form hidden_by_default'>";
   $self->{pmt_ro}->settings_form();
