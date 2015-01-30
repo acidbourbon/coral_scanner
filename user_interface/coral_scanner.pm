@@ -168,11 +168,15 @@ sub main_html {
   
   print "<p id='show_pmt_spectrum' class='quasibutton' >spectrum</p>";
   print "<div id='pmt_spectrum_container' class='stylishBox padded'>";
-  print '<div id="spectrum_plot_container" style="width:600px;height:300px"></div>';
+  print "<table><tr><td>";
+  print '<div id="spectrum_plot_container" style="width:600px;height:300px;float:left;"></div>';
+  print "</td><td>";
+  print '<div id="choices"></div>';
+  print "</td></tr></table>";
   print "<input type='button' id='button_plot_spectrum' value='plot spectrum'>";
   print "<input type='button' id='button_clear_spectrum' value='clear spectrum'>";
   print "<label><input type='checkbox' id='checkbox_log_spectrum' >log y</label>";
-  print br br;
+  print br;
   print "record name: ";
   print "<input type='text' id='text_spectrum_name' value='signal'>";
   print "<input type='button' id='button_record_spectrum' value='record spectrum'>";
@@ -222,6 +226,8 @@ sub scan_sample {
     abort  => 0,
     cols => $scan_pattern->{cols},
     rows => $scan_pattern->{rows},
+    number_points => $scan_pattern->{number_points},
+    points_scanned => 0,
     current_col => 0,
     current_row => 0,
     ETA  => $ETA,
@@ -266,6 +272,7 @@ sub scan_sample {
         abort => 0,
         current_col => ($col+1),
         current_row => ($row+1),
+        points_scanned => $points_scanned,
         seconds_left => 0
       };
       $self->{status_shm}->writeShm($status);
@@ -280,6 +287,7 @@ sub scan_sample {
         %$status,
         current_col => ($col+1),
         current_row => ($row+1),
+        points_scanned => $points_scanned,
         seconds_left => $seconds_left
       };
       $self->{status_shm}->writeShm($status);

@@ -57,6 +57,7 @@ $(document).ready(function(){
   });
   $("#button_plot_spectrum").click(function(){
     spectrum = get_spectrum_JSON();
+    plot_choices();
     plot_spectrum();
   });
   $("#button_clear_spectrum").click(function(){
@@ -97,13 +98,14 @@ $(document).ready(function(){
   });
   
   $( "#progressbar" ).progressbar({
-    value: 100
+    value: 1000
   });
   
   get_coral_scanner_settings();
   get_pmt_ro_settings();
   
   spectrum = get_spectrum_JSON();
+  plot_choices();
   plot_spectrum();
   
   get_scan_meta();
@@ -169,17 +171,48 @@ function make_flot(){
   
 }
 
+function plot_choices() {
+    // insert checkboxes 
+    var choiceContainer = $("#choices");
+    choiceContainer.html("");
+    $.each(spectrum, function(key, val) {
+      choiceContainer.append("<br/><input type='checkbox' name='" + key +
+        "' checked='checked' id='id" + key + "'></input>" +
+        "<label for='id" + key + "'>"
+        + key + "</label>");
+    });
+    
+    choiceContainer.find("input").click(function(){plot_spectrum();});
+  
+  
+}
+
+
 function plot_spectrum() {
   var data = [];
-  for (x in spectrum){
-    data.push(
-      {
-        data: spectrum[x].data,
-        bars: { show: true ,  barWidth: 0.8*parseFloat(spectrum[x].meta.bin_width), align: "center" },
-        label: x
-      }
-    );
-  }
+//   for (x in spectrum){
+//     data.push(
+//       {
+//         data: spectrum[x].data,
+//         bars: { show: true ,  barWidth: 0.8*parseFloat(spectrum[x].meta.bin_width), align: "center" },
+//         label: x
+//       }
+//     );
+//   }
+  
+  $('#choices').find("input:checked").each(function () {
+        var key = $(this).attr("name");
+        if (key && spectrum[key]) {
+//           data.push(datasets[key]);
+          data.push(
+            {
+              data: spectrum[key].data,
+              bars: { show: true ,  barWidth: 0.8*parseFloat(spectrum[key].meta.bin_width), align: "center" },
+              label: key
+            }
+          );
+        }
+      });
   
   var options = {
     selection: {
@@ -330,8 +363,8 @@ function get_scan_status(){
             $('#'+id).html(answer[id]);
           }
           $( "#progressbar" ).progressbar({
-            max: answer.rows,
-            value: answer.current_row
+            max: answer.number_points,
+            value: answer.points_scanned
           });
         }
      });
