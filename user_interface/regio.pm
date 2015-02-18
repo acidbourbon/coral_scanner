@@ -74,6 +74,9 @@ sub new {
   $self->{port}->databits(8); 
   $self->{port}->stopbits(1); 
   $self->{port}->handshake("none"); 
+  $self->{port}->are_match("");
+  $self->{port}->read_char_time(1);  # avg time between read char
+  $self->{port}->read_const_time(40); # const time for read (milliseconds)
   $self->{port}->write_settings;
   
   return $self;
@@ -110,12 +113,9 @@ sub communicate {
   my $self = shift;
   my $command = shift;
   
-  my $ack_timeout=0.5;
   my $rstring;
 
-  $self->{port}->are_match("");
-  $self->{port}->read_char_time(1);  # avg time between read char
-  $self->{port}->read_const_time(2); # const time for read (milliseconds)
+
   $self->{port}->lookclear; 
   $self->{port}->write("$command\n");
   

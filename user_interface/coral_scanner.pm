@@ -432,6 +432,39 @@ sub stop_scan {
   return " ";
 }
 
+sub scan_to_ascii {
+  my $self = shift;
+  my %options = @_;
+  my $scan = $self->{scan_shm}->readShm();
+  my $tc = $self->{table_control};
+  
+  my $sample_rect_x1 = $tc->{settings}->{sample_rect_x1};
+  my $sample_rect_x2 = $tc->{settings}->{sample_rect_x2};
+  my $sample_rect_y1 = $tc->{settings}->{sample_rect_y1};
+  my $sample_rect_y2 = $tc->{settings}->{sample_rect_y2};
+  
+  my $sample_rect_size_x = $sample_rect_x2 - $sample_rect_x1;
+  my $sample_rect_size_y = $sample_rect_y2 - $sample_rect_y1;
+  
+  my $aperture_dia = $tc->{settings}->{sample_aperture_dia};
+  
+  my $step_size = $scan->{meta}->{step_size};
+  my $cols = $scan->{meta}->{cols};
+  my $rows = $scan->{meta}->{rows};
+  
+  my @rows = ();
+  for (my $i=0; $i < $rows; $i++) {
+    my @cols = ();
+    for (my $j=0; $j < $cols; $j++) {
+      my $counts = $scan->{data}->[$i]->[$j];
+      push(@cols,$counts);
+    }
+    push(@rows,join("\t",@cols));
+  }
+  print join("\n",@rows);
+  return " ";
+}
+
 sub scan_to_svg {
   my $self = shift;
   my %options = @_;
