@@ -77,7 +77,7 @@ span.dropt:hover span {margin: 20px 0 0 170px; background: #ffffff; z-index:6;}
 </style>
 
   
-<form action="'.ref($self).'.pl" method="get" target="_blank">
+<form class="has_settings_form" action="'.ref($self).'.pl" method="get" target="_blank">
   <input type="text" name="sub" value="save_settings" class="hidden"><br>
   <table>
   ';

@@ -25,6 +25,26 @@ $(document).ready(function(){
     get_scan_status()
   });
   
+  
+  
+  $(".has_settings_form").submit(function( event ){
+      var url = $(this).attr("action");
+      event.preventDefault();
+      $.ajax({
+          url: url,
+          type: 'post',
+          dataType: 'text',
+          data: $(this).serialize(),
+          success: function(data) {
+            alert(data);
+          }
+      });
+  });
+  
+  
+  
+  
+  
   unfolds($("#show_main_controls"),$("#main_controls_container"));
   unfolds($("#show_pmt_ro_settings"),$("#pmt_ro_settings_container"));
   unfolds($("#show_table_control_settings"),$("#table_control_settings_container"));
