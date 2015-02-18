@@ -42,7 +42,9 @@ $(document).ready(function(){
   });
   
   
-  
+  $("#scan_pattern_container").bind('isVisible',function(){
+    get_pattern_svg();
+  });
   
   
   unfolds($("#show_main_controls"),$("#main_controls_container"));
@@ -50,11 +52,11 @@ $(document).ready(function(){
   unfolds($("#show_table_control_settings"),$("#table_control_settings_container"));
   unfolds($("#show_pmt_spectrum"),$("#pmt_spectrum_container"));
   unfolds($("#show_coral_scanner_settings"),$("#coral_scanner_settings_container"));
-  
   unfolds($("#show_scan_pattern"),$("#scan_pattern_container"));
-  $("#scan_pattern_container").bind('isVisible',function(){
-    get_pattern_svg();
-  });
+  
+  
+  
+
   
   $("#button_home").click(function(){
     home();

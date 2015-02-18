@@ -95,6 +95,7 @@ sub main_html {
     ],
     
     -script => [
+      {-src => './cookies.js'},
       {-src => './jquery.min.js'},
       {-src => './jquery.timer.js'},
       {-src => './jquery-ui.js'},

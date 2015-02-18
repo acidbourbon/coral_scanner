@@ -1,12 +1,16 @@
+// requires cookies.js
+
 function unfold(button,container){
   var button_text = button.html();
   var new_button_text;
   
   if(container.is(':visible')){
     new_button_text = button_text.replace("[-]","[+]");
+    createCookie(container.attr("id"),"hidden",10);
   } else {
     new_button_text = button_text.replace("[+]","[-]");
     container.trigger('isVisible');
+    createCookie(container.attr("id"),"visible",10);
   }
   container.fadeToggle();
   $('html, body').animate({
@@ -21,6 +25,14 @@ function unfolds(button,container){
   });
   
   var button_text = button.html();
+  var id=container.attr("id");
+  var status = readCookie(id);
+  if( status == "hidden" ) {
+    container.hide();
+  } else if ( status == "visible" ) {
+    container.trigger('isVisible');
+    container.show();
+  }
   
   if(container.is(':visible')){
     button.html("[-] "+button_text);
