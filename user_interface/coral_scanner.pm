@@ -8,6 +8,7 @@ use POSIX qw/strftime/;
 use POSIX;
 use Device::SerialPort;
 use Data::Dumper;
+use Proc::Daemon;
 
 use SVG;
 
@@ -44,6 +45,7 @@ sub new {
     approx_upper_rate => 4000,
     plot_lower_limit  => 0,
     plot_upper_limit  => 4000,
+    pidfile           => "./coral_scanner.pid",
   };
   
   $self->{settings_desc} = {
@@ -52,7 +54,7 @@ sub new {
     is used for setting the value range of the plot",
     plot_lower_limit  => "lower contrast setting for the plot",
     plot_upper_limit  => "upper contrast setting for the plot",
-    
+    pidfile           => "/path/to/file of the lockfile for the scanning background process",
   };
 
   $self->{has_run} = {}; # remember which subs already have run
@@ -127,8 +129,8 @@ sub main_html {
   print '<div id="slider-range"></div>';
   print br;
   print "<input type='button' value='(re)plot' id='button_replot'>";
-  print "<a href='coral_scanner.pl?sub=scan_to_ascii' target='_blank' id='button_ascii'><input type='button'
-  value='scan to ascii'></a>";
+  print "<a href='coral_scanner.pl?sub=scan_to_ascii' target='_blank' id='button_ascii'
+  ><input type='button' value='scan to ascii'></a>";
   print br;
   print br;
   print "estimated scan duration: ".hms_string($self->scan_ETA());

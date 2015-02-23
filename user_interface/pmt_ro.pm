@@ -57,6 +57,21 @@ sub new {
     spectrum_bins  => 24,
     spectrum_delay  => 1
   };
+  
+  $self->{settings_desc} = { # hard default settings
+    tty => "address of the serial interface",
+    baudrate => "baudrate of serial interface",
+    signal_zero => "comparator reference voltage setting equal to unplugged/shorted signal input",
+    veto_zero => "comparator reference voltage setting equal to unplugged/shorted veto signal input",
+    is_calibrated => "equals 1 if signal_zero and veto_zero have been calibrated by automatic scan procedure",
+    dead_time => "dead time of the counter in the unit of FPGA clock cycles (133MHz). An artificial dead time is introduced to avoid double triggering of the discriminator",
+    signal_thresh => "disciminator threshold of the signal input",
+    veto_thresh => "discriminator threshold of the veto input",
+    spectrum_start => "start threshold of spectral scan",
+    spectrum_stop  => "stop/end threshold of spectral scan",
+    spectrum_bins  => "number of bins for spectral scan",
+    spectrum_delay  => "count integration time for each bin of spectral scan",
+  };
 
   $self->{has_run} = {}; # remember which subs already have run
   
