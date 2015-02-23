@@ -117,6 +117,10 @@ $(document).ready(function(){
     signal_thresh();
   });
   
+  $("#button_clearlog").click(function(){
+    clear_log();
+  });
+  
   $('#checkbox_log_spectrum').change(function(){
 //     alert($(this).prop('checked'));
     plot_spectrum();
@@ -524,6 +528,21 @@ function clear_spectrum(){
         dataType:  "text",
         data:      {
             sub      : "clear_spectrum",
+        },
+        success:   function(answer) {
+          alert(answer);
+        }
+     });
+}
+
+function clear_log(){
+  $.ajax({
+        url:       "coral_scanner.pl",
+        cache:     false,
+        async:     false,
+        dataType:  "text",
+        data:      {
+            sub      : "clear_log",
         },
         success:   function(answer) {
           alert(answer);

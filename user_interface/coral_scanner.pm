@@ -8,7 +8,6 @@ use POSIX qw/strftime/;
 use POSIX;
 use Device::SerialPort;
 use Data::Dumper;
-use Proc::Daemon;
 
 use SVG;
 
@@ -45,16 +44,19 @@ sub new {
     approx_upper_rate => 4000,
     plot_lower_limit  => 0,
     plot_upper_limit  => 4000,
-    pidfile           => "./coral_scanner.pid",
+    pid_file           => "./".__PACKAGE__.".pid",
+    log_file           => "./".__PACKAGE__.".log",
   };
   
   $self->{settings_desc} = {
     time_per_pixel => "time in seconds to integrate the counts of the PMT at a given coordinate",
     approx_upper_rate => "upper boundary of the counting rate in counts/sec,
     is used for setting the value range of the plot",
-    plot_lower_limit  => "lower contrast setting for the plot",
-    plot_upper_limit  => "upper contrast setting for the plot",
-    pidfile           => "/path/to/file of the lockfile for the scanning background process",
+    plot_lower_limit => "lower contrast setting for the plot",
+    plot_upper_limit => "upper contrast setting for the plot",
+    pid_file         => "/path/to/file of the lockfile for the scanning background process",
+    stdout           => "/path/to/file of the stdout logfile",
+    stderr           => "/path/to/file of the stderr logfile",
   };
 
   $self->{has_run} = {}; # remember which subs already have run
@@ -131,6 +133,9 @@ sub main_html {
   print "<input type='button' value='(re)plot' id='button_replot'>";
   print "<a href='coral_scanner.pl?sub=scan_to_ascii' target='_blank' id='button_ascii'
   ><input type='button' value='scan to ascii'></a>";
+  print "<a href='coral_scanner.log' target='_blank' id='button_log'
+  ><input type='button' value='view log'></a>";
+  print "<input type='button' value='clear log' id='button_clearlog'>";
   print br;
   print br;
   print "estimated scan duration: ".hms_string($self->scan_ETA());
@@ -226,6 +231,8 @@ sub scan_sample {
   my $scan_pattern = $tc->scan_pattern();
   my $ETA = $self->scan_ETA();
   
+  print ">>> starting scan\n\n";
+  
   $self->{status_shm}->updateShm({
     action => 'scanning',
     abort  => 0,
@@ -254,18 +261,25 @@ sub scan_sample {
   my $points_scanned = 0;
   
   for my $point (@{$scan_pattern->{points}}) {
-    $tc->go_xy( x => $point->{x}, y => $point->{y});
+    # attempt to drive to position
+    printf("Drive to point x,y = %3.3f,%3.3f i,j = %d,%d\n" ,$point->{x_rel},$point->{y_rel}, $point->{row},$point->{col});
+
     
-    printf("Acquire PMT counts at point x,y = %3.3f,%3.3f i,j = %d,%d\n" ,$point->{x_rel},$point->{y_rel}, $point->{row},$point->{col});
+    eval {
+      $tc->go_xy( x => $point->{x}, y => $point->{y});
+    };
+    warn "error from table\n$@" if $@;
+    
     
     my $delay = $self->{settings}->{time_per_pixel};
+    printf("Acquiring PMT counts for %3.2f seconds\n",$delay);
     my $counts = $ro->count(delay => $delay, channel => "signal");
     my $col = $point->{col};
     my $row = $point->{row};
     $points_scanned += 1;
     
     $self->{current_scan}->{data}->[$row]->[$col] = $counts;
-    print "counts: $counts\n";
+    print "recorded counts: $counts\n";
     print "\n\n";
     
     my $status = $self->{status_shm}->lockAndReadShm();
@@ -282,7 +296,7 @@ sub scan_sample {
       };
       $self->{status_shm}->writeShm($status);
       $self->{scan_shm}->writeShm($self->{current_scan});
-      print "scan was aborted!\n";
+      print ">>> scan was aborted!\n\n";
 #       last; # stop the acquisition loop!
       exit;
     } else {
@@ -305,32 +319,9 @@ sub scan_sample {
     seconds_left => 0
   });
   
-  $self->save_scan_ascii(filename => "./scan.dat");
+  print ">>> scan completed!\n\n";
   
-  
-
-}
-
-
-sub save_scan_ascii {
-  my $self = shift;
-  my %options = @_;
-  
-  my $filename = $options{filename};
-  
-  my @darray = @{$self->{current_scan}->{data}};
-#   @darray = sort {$a->{col} <=> $b->{col}} @darray;
-#   @darray = sort {$a->{row} <=> $b->{row}} @darray;
-  
-  open(FILE,">$filename");
-  for my $item (@darray){
-  
-    my $string = join("\t",@$item)."\n";
-#     my $string = sprintf("%d\t%d\t%d\n",$item->{row},$item->{col},$item->{counts});
-    print $string;
-    print FILE $string;
-  }
-  close(FILE);
+  return "";
 
 }
 
@@ -394,12 +385,26 @@ sub scan_status {
 sub last_scan {
   my $self = shift;
   return $self->{scan_shm}->readShm();
+}
 
+sub clear_log {
+  my $self = shift;
+  eval {
+    unlink $self->{settings}->{log_file} or die "could not delete log file";
+  };
+  if ($@) {
+    print $@;
+    return "";
+  }
+  print "log file deleted\n";
+  return "";
 }
 
 sub start_scan {
   my $self= shift;
-  daemonize();
+  
+  #start daemon
+  $self->daemon_start() or die "service could not be started (already running?)\n";
   $self->scan_sample();
 }
 
@@ -408,17 +413,22 @@ sub record_spectrum {
   my %options = @_;
   my $name = $options{name} || "signal";
   
-  daemonize();
+  #start daemon
+  die "service could not be started (already running?)\n" unless ($self->daemon_start());
   $self->{pmt_ro}->spectral_scan_onesided(
     name => $name
   );
   
-  return " ";
+  return "";
 }
 
 sub home {
   my $self= shift;
-  daemonize();
+  #start daemon
+  die "service could not be started (already running?)\n" unless ($self->daemon_start());
+  
+  print "homing the table\n";
+  
   $self->{status_shm}->updateShm({
     action => "homing"
   });
@@ -428,6 +438,9 @@ sub home {
   $self->{status_shm}->updateShm({
     action => "idle"
   });
+  print "homing completed\n";
+  
+  return "";
 }
 
 sub stop_scan {
@@ -556,7 +569,6 @@ sub scan_to_svg {
   return " ";
 
 }
-
 
 
 

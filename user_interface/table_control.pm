@@ -305,7 +305,7 @@ sub go_xy {
 
 sub go_startpoint {
   my $self = shift;
-  
+  print "attempting to go to the scan startpoint\n";
   $self->go_xy(
     x => $self->{settings}->{sample_rect_x1},
     y => $self->{settings}->{sample_rect_y1}

@@ -108,7 +108,7 @@ sub writeShm { # closes and unlocks shm file if already open
     my $fh=$self->{shmFh};
     #check if file handle still open and locked
     unless($self->{shmFhLocked}){
-      print "found locked shm from previous lock-and-read\n";
+#       print "found locked shm from previous lock-and-read\n";
       sysopen($fh, $self->{shmFile}, O_RDWR|O_CREAT, 0666) 
           or die "can't open shm file: $!";
       flock($fh, LOCK_EX)           or die "can't lock shm file: $!";
