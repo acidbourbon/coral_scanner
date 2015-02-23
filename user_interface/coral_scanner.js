@@ -73,6 +73,9 @@ $(document).ready(function(){
     store_slider_settings();
     get_scan_svg();
   });
+  $("#button_ascii").click(function(){
+    $(this).button();
+  });
   
   $("#button_program_padiwa").click(function(){
     apply_device_settings();
@@ -494,7 +497,6 @@ function load_settings(url){
      });
   return return_obj;
 }
-
 
 
 function get_spectrum_JSON(){

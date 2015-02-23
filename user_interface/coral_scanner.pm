@@ -126,7 +126,9 @@ sub main_html {
   print br;
   print '<div id="slider-range"></div>';
   print br;
-  print "<input type='button' value='replot' id='button_replot'>";
+  print "<input type='button' value='(re)plot' id='button_replot'>";
+  print "<a href='coral_scanner.pl?sub=scan_to_ascii' target='_blank' id='button_ascii'><input type='button'
+  value='scan to ascii'></a>";
   print br;
   print br;
   print "estimated scan duration: ".hms_string($self->scan_ETA());
@@ -488,8 +490,6 @@ sub scan_to_svg {
   my $aperture_dia = $tc->{settings}->{sample_aperture_dia};
   
   my $scale = 12; # pixel per mm
-  
-  # create an SVG object with a size of 40x40 pixels
   
   my $pic_width  = ($sample_rect_size_x+5)*$scale;
   my $pic_height = 250;
