@@ -46,6 +46,8 @@ sub new {
     plot_upper_limit  => 4000,
     pid_file           => "./".__PACKAGE__.".pid",
     log_file           => "./".__PACKAGE__.".log",
+    table_control_number_retries => 3,
+    table_control_retry_delay => 5,
   };
   
   $self->{settings_desc} = {
@@ -57,6 +59,8 @@ sub new {
     pid_file         => "/path/to/file of the lockfile for the scanning background process",
     stdout           => "/path/to/file of the stdout logfile",
     stderr           => "/path/to/file of the stderr logfile",
+    table_control_number_retries => "number of retries, when communication with the table fails",
+    table_control_retry_delay => "number of seconds to wait for new connection with table",
   };
 
   $self->{has_run} = {}; # remember which subs already have run
@@ -268,7 +272,35 @@ sub scan_sample {
     eval {
       $tc->go_xy( x => $point->{x}, y => $point->{y});
     };
-    warn "error from table\n$@" if $@;
+    if($@) {
+      warn "error from table\n$@";
+      print "attempting to reconnect with table\n";
+      my $tries = $self->{settings}->{table_control_number_retries};
+      for my $try (1..$tries) {
+        print "try $try of $tries\n:";
+        sleep $self->{settings}->{table_control_retry_delay};
+        eval {
+          $tc->init_port();
+          $tc->home();
+          $tc->go_xy( x => $point->{x}, y => $point->{y});
+        };
+        
+        if($@) {
+          warn "not successful: $@\n";
+          if($try == $tries){
+            $self->{status_shm}->updateShm({
+              action => "error"
+            });
+            die "cannot talk to the table after $try tries, giving up\n";
+          }
+        } else {
+          print "table can be controlled again!\ncontinuing scan\n";
+          last;
+        }
+      
+      }
+    
+    }
     
     
     my $delay = $self->{settings}->{time_per_pixel};
@@ -414,7 +446,7 @@ sub record_spectrum {
   my $name = $options{name} || "signal";
   
   #start daemon
-  die "service could not be started (already running?)\n" unless ($self->daemon_start());
+  $self->daemon_start() or die "service could not be started (already running?)\n";
   $self->{pmt_ro}->spectral_scan_onesided(
     name => $name
   );
@@ -425,20 +457,29 @@ sub record_spectrum {
 sub home {
   my $self= shift;
   #start daemon
-  die "service could not be started (already running?)\n" unless ($self->daemon_start());
+  $self->daemon_start() or die "service could not be started (already running?)\n";
   
-  print "homing the table\n";
+  print ">>> homing the table\n\n";
   
   $self->{status_shm}->updateShm({
     action => "homing"
   });
   
-  $self->{table_control}->home();
-  
-  $self->{status_shm}->updateShm({
-    action => "idle"
-  });
-  print "homing completed\n";
+  eval {
+    $self->{table_control}->home();
+  };
+  if ($@) {
+    warn "could not home table\n";
+    warn $@;
+    $self->{status_shm}->updateShm({
+      action => "error"
+    });
+  } else {
+    $self->{status_shm}->updateShm({
+      action => "idle"
+    });
+    print ">>> homing completed\n";
+  }
   
   return "";
 }

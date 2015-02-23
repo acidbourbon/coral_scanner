@@ -128,11 +128,8 @@ sub init_port {
   $self->{port} = new Device::SerialPort($tty);
   my $port = $self->{port};
   
-  unless ($port)
-  {
-    print "can't open serial interface $tty\n";
-    exit;
-  }
+  die "can't open serial interface $tty\n" unless(defined($port));
+
 
   $port->user_msg('ON'); 
   $port->baudrate($baudrate); 
