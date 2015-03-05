@@ -26,14 +26,16 @@ sub new {
   
   # a lookup table for registers in the FPGA
   $self->{regaddr_lookup} = {
-    signal_thresh  => 0,
-    veto_thresh    => 1,
-    acquisition    => 20,
-    signal_counter => 21,
-    veto_counter   => 22,
-    net_counter    => 23,
-    reset_counter  => 24,
-    dead_time      => 25
+    signal_thresh     => 0,
+    veto_thresh       => 1,
+    acquisition_ready => 19,
+    acquisition       => 20,
+    signal_counter    => 21,
+    veto_counter      => 22,
+    net_counter       => 23,
+    reset_counter     => 24,
+    dead_time         => 25,
+    acquisition_time  => 26
   };
   
   $self->{constants} = {
@@ -318,6 +320,45 @@ sub dead_time {
   }
 }
 
+sub acquisition_time {
+# Reads or sets the acquisition time for the PMT counter in the FPGA
+# The time unit is 1 ms
+  my $self = shift;
+  my %options = @_;
+  my $tries   = $options{tries} || 4;
+  
+#  $self->require_run("load_settings");
+  
+  my $value = $options{value};
+  
+  if(defined($value)){
+  #if value is given, write acquisition time
+    for my $try (1..$tries) {
+#     print "try: $try\n";
+      eval {
+        my $is = $self->read_register(regName => "acquisition_time");
+        die "could not read acquisition time setting\n";
+        if ($is eq $value) {
+          last;
+        } else {
+          $self->write_register(regName => "acquisition_time", value => $value);
+        }
+      };
+      if ($@) {
+        warn "sub acquisition time had some problems:\n";
+        warn "(try $try of $tries)\n";
+        warn $@;
+        warn "trying again\n";
+      }
+      die "could not set acquisition time!\n" if ($try eq $tries);
+    }
+  } else {
+    #just read acquisition_time
+    return $self->read_register(regName => "acquisition_time");
+  }
+}
+
+
 sub zero_calib {
   #calibrates the offset between both comparator inputs
   #please unplug signal input before executing this
@@ -379,8 +420,9 @@ sub count { # count for a given time on a given channel
 #  $self->require_run("load_settings");
   $self->require_run("setup_regio");
   
-  my $channel = $options{channel}; # can be "signal" or "veto" or "net"
-  my $delay   = $options{delay} || 1;
+  my $channel  = $options{channel}; # can be "signal" or "veto" or "net"
+  my $delay    = $options{delay} || 1;
+  my $delay_ms = $delay*1000;
   
   my $tries   = $options{tries} || 3;
   
@@ -400,15 +442,49 @@ sub count { # count for a given time on a given channel
     die "$channel is not a valid channel!\n possible channels are \"signal\",\"veto\" and \"net\"\n!";
   }
   
-  for ( my $try=0; $try < $tries; $try++) {
-    $self->{regio}->write($self->{regaddr_lookup}->{acquisition},0); # stop acquisition
-    $self->{regio}->read($self->{regaddr_lookup}->{reset_counter}); # reset counter
-    $self->{regio}->write($self->{regaddr_lookup}->{acquisition},1); # start acquisition
-    Time::HiRes::sleep($delay); # let the counter count
-    $self->{regio}->write($self->{regaddr_lookup}->{acquisition},0); # stop acquisition
-    my $counts = $self->{regio}->read($counter_addr); # read counter value
-#     $self->{regio}->write($self->{regaddr_lookup}->{acquisition},1); # start acquisition
-    return $counts if defined($counts);
+  $self->acquisition_time( value => $delay_ms );
+  
+  for my $try (1..$tries) {
+  
+    my $counts;
+    
+    eval {
+  #     $self->{regio}->write($self->{regaddr_lookup}->{acquisition},0); # stop acquisition
+      my $status = $self->read_register(regName => "acquisition");
+      die "FPGA acquisition status could not be determined\n"
+        unless defined( $status );
+      die "FPGA is already acquiring counts!\n"
+        if ($status eq 1);
+      $self->{regio}->read($self->{regaddr_lookup}->{reset_counter}); # reset counter
+      die "counters in FPGA could not be reset!\n"
+        if ($self->{regio}->read($counter_addr) ne 0);
+      $self->{regio}->write($self->{regaddr_lookup}->{acquisition},1); # start acquisition
+      Time::HiRes::sleep($delay); # let the counter count
+      
+      # poll 200 ms until you get the acquisition ready signal from FPGA
+      for my $poll (1..20) {
+        my $ready = $self->read_register(regName => "acquisition_ready");
+  #       print "poll: $poll\n";
+        last if $ready;
+        die "acquisition not successful!\n" if ($poll eq 20);
+        Time::HiRes::sleep(0.01);
+      }
+      
+      $counts = $self->{regio}->read($counter_addr); # read counter value
+      die "could not read counts!" unless defined($counts);
+    };
+    
+    if ($@) {
+      if ($try eq $tries){
+        die $@;
+      } else {
+        warn "try $try of $tries:\n";
+        warn $@;
+        warn "trying again\n";
+      }
+    } else {
+      return $counts;
+    }
   }
   die "Padiwa does not answer after $tries tries!\n";
 
