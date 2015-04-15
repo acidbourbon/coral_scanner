@@ -335,17 +335,19 @@ sub acquisition_time {
   #if value is given, write acquisition time
     for my $try (1..$tries) {
 #     print "try: $try\n";
+      my $success = 0;
       eval {
         my $is = $self->read_register(regName => "acquisition_time");
-        die "could not read acquisition time setting\n";
+        die "could not read acquisition time setting\n" unless(defined($is));
         if ($is eq $value) {
-          last;
+          $success = 1;
         } else {
           $self->write_register(regName => "acquisition_time", value => $value);
         }
       };
+      last if $success;
       if ($@) {
-        warn "sub acquisition time had some problems:\n";
+        warn "sub acquisition_time had some problems:\n";
         warn "(try $try of $tries)\n";
         warn $@;
         warn "trying again\n";
