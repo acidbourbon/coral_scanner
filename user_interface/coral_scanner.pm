@@ -189,7 +189,9 @@ sub main_html {
   print "</td></tr></table>";
   print "<input type='button' id='button_plot_spectrum' value='plot spectrum'>";
   print "<input type='button' id='button_clear_spectrum' value='clear spectrum'>";
+  print "<input type='button' id='button_delete_selected' value='delete selected'>";
   print "<label><input type='checkbox' id='checkbox_log_spectrum' >log y</label>";
+  print "<label><input type='checkbox' id='checkbox_diff_spectrum' >diff</label>";
   print br;
   print "record name: ";
   print "<input type='text' id='text_spectrum_name' value='signal'>";

@@ -229,6 +229,46 @@ sub spectrum_JSON {
 
 }
 
+sub spectrum_delete {
+  my $self = shift;
+  my %options = @_;
+  
+  my @runs = split(",",$options{runs});
+  
+  my $spectrum = $self->{spectrum_shm}->readShm();
+  for my $run (@runs){
+    delete $spectrum->{$run};
+  }
+  $self->{spectrum_shm}->writeShm($spectrum);
+  return " ";
+
+}
+
+sub spectrum_csv {
+  my $self = shift;
+  
+  my $spectrum = $self->{spectrum_shm}->readShm();
+  
+  for my $key (keys %$spectrum){
+    my $run = $spectrum->{$key};
+    print "run name:\t".$key."\n";
+    for my $info (sort keys %{$run->{meta}}){
+      print $info.":\t".$run->{meta}->{$info}."\n";
+    }
+    print "\n";
+    print "threshold\tcounts\n";
+    for my $data_pair (@{$run->{data}}){
+      print $data_pair->[0]."\t".$data_pair->[1]."\n";
+    }
+    
+    print "\n";
+    print "\n";
+  
+  }
+  return " ";
+
+}
+
 sub clear_spectrum {
   my $self = shift;
   

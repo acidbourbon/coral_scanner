@@ -88,6 +88,9 @@ $(document).ready(function(){
   $("#button_clear_spectrum").click(function(){
     clear_spectrum();
   });
+  $("#button_delete_selected").click(function(){
+    spectrum_delete();
+  });
   $("#button_record_spectrum").click(function(){
     record_spectrum();
   });
@@ -122,6 +125,10 @@ $(document).ready(function(){
   });
   
   $('#checkbox_log_spectrum').change(function(){
+//     alert($(this).prop('checked'));
+    plot_spectrum();
+  });
+  $('#checkbox_diff_spectrum').change(function(){
 //     alert($(this).prop('checked'));
     plot_spectrum();
   });
@@ -210,8 +217,19 @@ function plot_choices() {
         "<label for='id" + key + "'>"
         + key + "</label>");
     });
-    
     choiceContainer.find("input").click(function(){plot_spectrum();});
+    
+    
+    // select all or none with one master checkbox
+    choiceContainer.append("<br><hr><input type='checkbox' id='checkbox_allnone' checked='true'></input>"
+    + "<label for='checkbox_allnone'>select all/none</label>");
+    $('#checkbox_allnone').click(function(){
+      var master = $(this);
+      choiceContainer.find("input").each(function(){
+        $(this).prop( "checked", master.prop("checked") );
+      });
+      plot_spectrum();
+    });
   
   
 }
@@ -231,11 +249,25 @@ function plot_spectrum() {
   
   $('#choices').find("input:checked").each(function () {
         var key = $(this).attr("name");
+        
+        
         if (key && spectrum[key]) {
 //           data.push(datasets[key]);
+          var dataset = spectrum[key].data;
+          
+          if($('#checkbox_diff_spectrum').prop('checked') == true){
+            var diff = [];
+            
+            for (var i = 0; i < dataset.length; i++) {
+              if(i > 0) {
+                diff.push([(dataset[i][0]+dataset[i-1][0])/2, dataset[i][1]-dataset[i-1][1] ]);
+              }
+            }
+            dataset = diff;
+          }
           data.push(
             {
-              data: spectrum[key].data,
+              data: dataset,
               bars: { show: true ,  barWidth: 0.8*parseFloat(spectrum[key].meta.bin_width), align: "center" },
               label: key
             }
@@ -562,6 +594,27 @@ function record_spectrum(){
         },
         success:   function(answer) {
           spectrum = get_spectrum_JSON();
+          plot_spectrum();
+        }
+     });
+}
+
+function spectrum_delete(){
+  var runs = $('#choices input[type=checkbox]:checked').map(function() {
+    return $(this).attr("name");
+  }).get().join(',');
+  $.ajax({
+        url:       "pmt_ro.pl",
+        cache:     false,
+        async:     true,
+        dataType:  "text",
+        data:      {
+            sub      : "spectrum_delete",
+            runs     : runs
+        },
+        success:   function(answer) {
+          spectrum = get_spectrum_JSON();
+          plot_choices();
           plot_spectrum();
         }
      });

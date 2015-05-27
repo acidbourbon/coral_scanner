@@ -33,6 +33,8 @@ my $dispatch_table = {
   dead_time => 1,
   apply_device_settings => 1,
   spectrum_JSON => 1,
+  spectrum_csv  => 1,
+  spectrum_delete  => 1,
   clear_spectrum => 1,
   acquisition_time => 1
 };
