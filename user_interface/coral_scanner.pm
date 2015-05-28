@@ -196,6 +196,8 @@ sub main_html {
   print "record name: ";
   print "<input type='text' id='text_spectrum_name' value='signal'>";
   print "<input type='button' id='button_record_spectrum' value='record spectrum'>";
+  print "<a href='./pmt_ro.pl?sub=spectrum_csv' target='_blank' id='button_spectrum_csv'
+  ><input type='button' value='spectrum data (csv)'></a>";
   print "</div>";
   
   print "<p id='show_scan_pattern' class='quasibutton' >scan pattern</p>";
