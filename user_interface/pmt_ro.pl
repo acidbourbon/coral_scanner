@@ -36,6 +36,7 @@ my $dispatch_table = {
   spectrum_csv  => 1,
   spectrum_delete  => 1,
   clear_spectrum => 1,
+  counts_histogram => 1,
   acquisition_time => 1
 };
 

@@ -35,7 +35,8 @@ sub new {
     net_counter       => 23,
     reset_counter     => 24,
     dead_time         => 25,
-    acquisition_time  => 26
+    acquisition_time  => 26,
+    input_polarity    => 27
   };
   
   $self->{constants} = {
@@ -762,7 +763,21 @@ sub write_register {
 
 
 
+sub counts_histogram {
+  
+  my $self = shift;
+  my %options = @_;
+  
+  my @data = ();
+  
+  for my $i (1..32) {
+    $data[$i] = $self->read_register(addr => $i+100);
+    print "$i\t".$data[$i]."\n";
+  }
+  return " ";
 
+
+}
 
 
 sub help {

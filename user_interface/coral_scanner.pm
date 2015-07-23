@@ -140,6 +140,8 @@ sub main_html {
   print "<a href='coral_scanner.log' target='_blank' id='button_log'
   ><input type='button' value='view log'></a>";
   print "<input type='button' value='clear log' id='button_clearlog'>";
+  print "<a href='coral_scanner.pl?sub=scan_to_svg' target='_blank' id='button_svg'
+  ><input type='button' value='svg image'></a>";
   print br;
   print br;
   print "estimated scan duration: ".hms_string($self->scan_ETA());
