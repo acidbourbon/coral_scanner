@@ -21,6 +21,7 @@ our @ISA = qw/has_settings/; # assimilate the methods of the has_settings class
 
 use pmt_ro;
 use table_control;
+use report;
 
 use misc_subs;
 
@@ -75,6 +76,7 @@ sub new {
   
   $self->{pmt_ro} = pmt_ro->new();
   $self->{table_control} = table_control->new();
+  $self->{report} = report->new();
   
   $self->load_settings();
   
@@ -224,6 +226,11 @@ sub main_html {
   $self->{table_control}->settings_form();
   print "</div>";
   
+  print "<p id='show_report_settings' class='quasibutton' >report settings</p>";
+  print "<div align=right id='report_settings_container' class='stylishBox settings_form hidden_by_default'>";
+  $self->{report}->settings_form();
+  print "</div>";
+  
   print "</div>";
   
   print end_html();
@@ -358,6 +365,9 @@ sub scan_sample {
   });
   
   print ">>> scan completed!\n\n";
+  print ">>> sending report ...\n\n";
+  $self->compile_report();
+  print ">>> done!\n\n";
   
   return "";
 
@@ -503,6 +513,8 @@ sub scan_to_ascii {
   my $scan = $self->{scan_shm}->readShm();
   my $tc = $self->{table_control};
   
+  my $tofile = $options{tofile};
+  
   my $sample_rect_x1 = $tc->{settings}->{sample_rect_x1};
   my $sample_rect_x2 = $tc->{settings}->{sample_rect_x2};
   my $sample_rect_y1 = $tc->{settings}->{sample_rect_y1};
@@ -526,7 +538,13 @@ sub scan_to_ascii {
     }
     push(@rows,join("\t",@cols));
   }
-  print join("\n",@rows);
+  if(defined($tofile)){
+    open(FILE,"> $tofile") or die "cannot open output file $tofile\n";
+    print FILE join("\n",@rows);
+    close(FILE);
+  } else {
+    print join("\n",@rows);
+  }
   return " ";
 }
 
@@ -617,6 +635,39 @@ sub scan_to_svg {
 
 }
 
+
+sub compile_report {
+
+  my $self = shift;
+  my %options = @_;
+  
+  my $timestamp = strftime("%Y-%m-%d_%H:%M:%S", localtime());
+  
+  
+  my $storable = "./report/".$timestamp."_scan.storable";
+  system("cp /dev/shm/".$self->{scan_shm}->{shmName}." $storable");
+  my $dump = "./report/".$timestamp."_scan.dump";
+  
+  my $csv = "./report/".$timestamp."_scan.csv";
+  my $svg = "./report/".$timestamp."_scan.svg";
+  my $xls = $csv.".xls";
+  
+  open(DUMP,"> $dump") or die "cannot open $dump for writing \n";
+  print DUMP Dumper($self->last_scan());
+  close(DUMP);
+  
+  $self->scan_to_ascii(tofile => $csv);
+  $self->scan_to_svg(svg_file => $svg);
+  system("./csv2xls.sh $csv");
+  
+  $self->{report}->email(
+    text => "Scan has finished at $timestamp, all recorded data is attached",
+    attachments => join(",",($csv,$svg,$xls,$storable,$dump))
+  );
+  
+  return " ";
+
+}
 
 
 

@@ -53,6 +53,7 @@ $(document).ready(function(){
   unfolds($("#show_pmt_spectrum"),$("#pmt_spectrum_container"));
   unfolds($("#show_coral_scanner_settings"),$("#coral_scanner_settings_container"));
   unfolds($("#show_scan_pattern"),$("#scan_pattern_container"));
+  unfolds($("#show_report_settings"),$("#report_settings_container"));
   
   
   
