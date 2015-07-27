@@ -144,7 +144,19 @@ sub main_html {
   print "<input type='button' value='clear log' id='button_clearlog'>";
   print "<a href='coral_scanner.pl?sub=scan_to_svg' target='_blank' id='button_svg'
   ><input type='button' value='svg image'></a>";
+  print "<a href='coral_scanner.pl?sub=last_scan' target='_blank' id='button_dump'
+  ><input type='button' value='scan dump'></a>";
   print br;
+  print hr;
+  print br;
+  print "<table><tr>";
+  print "<td align=right>Scan name: </td>";
+  print "<td><input type='text' id='text_scan_name' value=''></td>";
+  print "</tr><tr>";
+  print "<td align=right>Scan description: </td>";
+  print "<td><input type='text' id='text_scan_desc' value=''></td>";
+  print "</tr></table>";
+  
   print br;
   print "estimated scan duration: ".hms_string($self->scan_ETA());
   print br;
@@ -169,7 +181,7 @@ sub main_html {
   print "<input type='button' id='button_stop_scan' value='stop scan'>";
   print "<input type='button' id='button_program_padiwa' value='program padiwa settings'>";
   print "<input type='button' id='button_test' value='test'>";
-  print br br;
+  print br br hr;
   print "PMT test:";
   print br;
   print "<input type='button' id='button_thresh' value='set threshold'>";
@@ -270,12 +282,18 @@ sub scan_sample {
     rows => $scan_pattern->{rows},
     time_per_pixel => $self->{settings}->{time_per_pixel},
     signal_thresh  => $self->{pmt_ro}->{settings}->{signal_thresh},
-    step_size => $self->{table_control}->{settings}->{sample_step_size}
+    step_size => $self->{table_control}->{settings}->{sample_step_size},
+    start_time      => time(),
+    start_timestamp => strftime("%Y-%m-%d_%H:%M:%S", localtime()),
     
   };
+  
+  $self->{current_scan}->{meta}->{scan_name} = $options{scan_name} if defined($options{scan_name});
+  $self->{current_scan}->{meta}->{scan_desc} = $options{scan_desc} if defined($options{scan_desc});
   $self->{current_scan}->{data} = [];
   
   my $points_scanned = 0;
+  my $last_row;
   
   for my $point (@{$scan_pattern->{points}}) {
     # attempt to drive to position
@@ -356,7 +374,21 @@ sub scan_sample {
       };
       $self->{status_shm}->writeShm($status);
     }
+    
+    # if one row has finished, update the shm (so you can make a plot in the gui)
+    unless( $last_row == $row ){
+      $self->{scan_shm}->writeShm($self->{current_scan});
+    }
+    $last_row = $row;
+    
   }
+  
+  $self->{current_scan}->{meta}->{stop_time} = time();
+  $self->{current_scan}->{meta}->{stop_timestamp} = strftime("%Y-%m-%d_%H:%M:%S", localtime());
+  
+  $self->{current_scan}->{meta}->{duration} = hms_string(
+    $self->{current_scan}->{meta}->{stop_time} - $self->{current_scan}->{meta}->{start_time} );
+  
   
   $self->{scan_shm}->writeShm($self->{current_scan});
   $self->{status_shm}->updateShm({
@@ -450,10 +482,10 @@ sub clear_log {
 
 sub start_scan {
   my $self= shift;
-  
+  my %options = @_;
   #start daemon
   $self->daemon_start() or die "service could not be started (already running?)\n";
-  $self->scan_sample();
+  $self->scan_sample(%options);
 }
 
 sub record_spectrum {
@@ -643,31 +675,43 @@ sub compile_report {
   
   my $timestamp = strftime("%Y-%m-%d_%H:%M:%S", localtime());
   
+  my $scan = $self->last_scan();
+  my $scan_name        = $scan->{meta}->{scan_name};
+  $scan_name =~ s/ /_/g; #remove spaces, they are not nice in filenames;
   
-  my $storable = "./report/".$timestamp."_scan.storable";
+  my $storable = "./report/".$timestamp."_".$scan_name.".storable";
   system("cp /dev/shm/".$self->{scan_shm}->{shmName}." $storable");
-  my $dump = "./report/".$timestamp."_scan.dump";
+  my $dump = "./report/".$timestamp."_".$scan_name.".dump";
   
-  my $csv = "./report/".$timestamp."_scan.csv";
-  my $svg = "./report/".$timestamp."_scan.svg";
+  my $csv = "./report/".$timestamp."_".$scan_name.".csv";
+  my $svg = "./report/".$timestamp."_".$scan_name.".svg";
   my $xls = $csv.".xls";
   
+  
   open(DUMP,"> $dump") or die "cannot open $dump for writing \n";
-  print DUMP Dumper($self->last_scan());
+  print DUMP Dumper($scan);
   close(DUMP);
   
   $self->scan_to_ascii(tofile => $csv);
   $self->scan_to_svg(svg_file => $svg);
   system("./csv2xls.sh $csv");
   
+#   my $start_timestamp = $scan->{meta}->{start_timestamp};
+#   my $stop_timestamp  = $scan->{meta}->{stop_timestamp};
+#   my $duration        = $scan->{meta}->{duration};
+  
+  my $mailtext = "Scan has finished\n".Dumper($scan->{meta})."\n";
+  
+  
   $self->{report}->email(
-    text => "Scan has finished at $timestamp, all recorded data is attached",
+    text => $mailtext,
     attachments => join(",",($csv,$svg,$xls,$storable,$dump))
   );
   
   return " ";
 
 }
+
 
 
 

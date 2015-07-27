@@ -478,7 +478,9 @@ function start_scan(){
         async:     true,
         dataType:  "text",
         data:      {
-          sub        : "start_scan"
+          sub        : "start_scan",
+          scan_name  : $('#text_scan_name').val(),
+          scan_desc  : $('#text_scan_desc').val(),
         },
         success:   function(answer) {
         }

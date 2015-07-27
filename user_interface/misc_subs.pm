@@ -23,7 +23,8 @@ BEGIN {
     max
     echo
     require_run
-    test hms_string
+    test
+    hms_string
     false_color
     daemon_start
     daemon_stop
