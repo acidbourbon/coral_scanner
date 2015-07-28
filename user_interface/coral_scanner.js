@@ -7,6 +7,7 @@ var timer;
 var scan_meta;
 var coral_scanner_settings;
 var pmt_ro_settings;
+var table_control_settings;
 var spectrum;
 
 
@@ -134,8 +135,28 @@ $(document).ready(function(){
     value: 1000
   });
   
+  $('#text_time_per_pixel').change(function(){
+    save_settings("coral_scanner.pl",{
+      time_per_pixel : $(this).val()
+    });
+    update_ETA();
+  });
+  $('#text_scan_length').change(function(){
+    save_settings("table_control.pl",{
+      mm_to_scan : $(this).val()
+    });
+    update_ETA();
+  });
+  $('#text_sample_step_size').change(function(){
+    save_settings("table_control.pl",{
+      sample_step_size : $(this).val()
+    });
+    update_ETA();
+  });
+  
   get_coral_scanner_settings();
   get_pmt_ro_settings();
+  get_table_control_settings();
   
   spectrum = get_spectrum_JSON();
   plot_choices();
@@ -143,6 +164,7 @@ $(document).ready(function(){
   
   get_scan_meta();
 //   get_scan_svg();
+  update_ETA();
   
   set_clear_timer();
 //   make_flot();
@@ -324,10 +346,16 @@ function store_slider_settings(){
 function get_coral_scanner_settings(){
   coral_scanner_settings = load_settings("coral_scanner.pl");
   init_slider();
+  $('#text_time_per_pixel').val(coral_scanner_settings.time_per_pixel);
 }
 function get_pmt_ro_settings(){
   pmt_ro_settings = load_settings("pmt_ro.pl");
   $('#text_thresh').val(pmt_ro_settings.signal_thresh);
+}
+function get_table_control_settings(){
+  table_control_settings = load_settings("table_control.pl");
+  $('#text_scan_length').val(table_control_settings.mm_to_scan);
+  $('#text_sample_step_size').val(table_control_settings.sample_step_size);
 }
 
 function init_slider(){
@@ -424,6 +452,22 @@ function get_scan_status(){
             max: answer.number_points,
             value: answer.points_scanned
           });
+        }
+     });
+}
+
+function update_ETA(){
+  $.ajax({
+        url:       "coral_scanner.pl",
+        cache:     false,
+        async:     true,
+        dataType:  "text",
+        data:      {
+          sub      : "scan_ETA",
+          hms      : true
+        },
+        success:   function(answer) {
+          $( "#ETA_hms" ).html(answer);
         }
      });
 }

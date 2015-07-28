@@ -49,6 +49,7 @@ sub new {
     log_file           => "./".__PACKAGE__.".log",
     table_control_number_retries => 3,
     table_control_retry_delay => 5,
+    unshadowed_count_time => 100,
   };
   
   $self->{settings_desc} = {
@@ -62,6 +63,7 @@ sub new {
     stderr           => "/path/to/file of the stderr logfile",
     table_control_number_retries => "number of retries, when communication with the table fails",
     table_control_retry_delay => "number of seconds to wait for new connection with table",
+    unshadowed_count_time => "time in seconds to record the unshadowed/undisturbed count rate of the source before scanning",
   };
 
   $self->{has_run} = {}; # remember which subs already have run
@@ -155,10 +157,19 @@ sub main_html {
   print "</tr><tr>";
   print "<td align=right>Scan description: </td>";
   print "<td><input type='text' id='text_scan_desc' value=''></td>";
+  print "</tr><tr>";
+  print "<td align=right>Sample length to scan (mm): </td>";
+  print "<td><input type='text' id='text_scan_length' value=''></td>";
+  print "</tr><tr>";
+  print "<td align=right>Time per pixel (s): </td>";
+  print "<td><input type='text' id='text_time_per_pixel' value=''></td>";
+  print "</tr><tr>";
+  print "<td align=right>Sample step size (mm): </td>";
+  print "<td><input type='text' id='text_sample_step_size' value=''></td>";
   print "</tr></table>";
   
   print br;
-  print "estimated scan duration: ".hms_string($self->scan_ETA());
+  print "estimated scan duration: <span id='ETA_hms'></span>";
   print br;
   print "Machine is : <span id='action'></span>";
   print br;
@@ -260,7 +271,7 @@ sub scan_sample {
   my $scan_pattern = $tc->scan_pattern();
   my $ETA = $self->scan_ETA();
   
-  print ">>> starting scan\n\n";
+  
   
   $self->{status_shm}->updateShm({
     action => 'scanning',
@@ -292,6 +303,19 @@ sub scan_sample {
   $self->{current_scan}->{meta}->{scan_desc} = $options{scan_desc} if defined($options{scan_desc});
   $self->{current_scan}->{data} = [];
   
+  print ">>> homing table\n\n";
+  $tc->home();
+  
+  print ">>> recording unshadowed beam count rate\n\n";
+  my $unshadowed_count_time = $self->{settings}->{unshadowed_count_time};
+  my $unshadowed_counts = $ro->count(delay => $unshadowed_count_time, channel => "signal");
+  $self->{current_scan}->{meta}->{unshadowed_count_time} = $unshadowed_count_time;
+  $self->{current_scan}->{meta}->{unshadowed_counts}     = $unshadowed_counts;
+  print "  count time : $unshadowed_count_time\n";
+  print "  counts     : $unshadowed_counts\n";
+  
+  
+  print ">>> starting actual scan\n\n";
   my $points_scanned = 0;
   my $last_row;
   
@@ -399,6 +423,9 @@ sub scan_sample {
   print ">>> scan completed!\n\n";
   print ">>> sending report ...\n\n";
   $self->compile_report();
+  
+  print ">>> homing table\n\n";
+  $tc->home();
   print ">>> done!\n\n";
   
   return "";
@@ -407,6 +434,7 @@ sub scan_sample {
 
 sub scan_ETA { #estimated time to complete a scan
   my $self = shift;
+  my %options = @_;
   
   my $tc = $self->{table_control};
   
@@ -426,9 +454,13 @@ sub scan_ETA { #estimated time to complete a scan
     }
     $last_point = $point;
   }
-  
+
   my $number_points = $pattern->{number_points};
-  return $pattern_length/$speed + $number_points*$time_per_pixel;
+  my $return_val = $pattern_length/$speed + $number_points*$time_per_pixel;
+  if ($options{hms}){
+    return hms_string($return_val);
+  }
+  return $return_val;
   
 }
 
