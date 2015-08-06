@@ -48,6 +48,17 @@ $(document).ready(function(){
     calculate();
   });
   
+  
+  $("#btn_append_data").click(function(){
+    $("#text_field").val(
+      $("#text_field").val()+"\n"+
+      $("#text_label").val()+"\t"+
+      $("#text_avg").val()+"\t"+
+      $("#text_stdev").val()+"\t"
+    );
+    
+  });
+  
 });
 
 

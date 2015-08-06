@@ -18,23 +18,43 @@
   
   </head>
   <body>
-  <h1>A Heading</h1>
-  <p id='pout' >text, text text, text</p>
-  <p>Canvas:</p>
-  
+  <h1>Coral Analysis</h1>
+<!--  <p id='pout' >text, text text, text</p>
+  <p>Canvas:</p> -->
+  <div id='compound_canvas'>
   <canvas id="myCanvas" width="3000" height="300">
   Your browser does not support the HTML5 canvas tag.
   </canvas>
   
   <div onmousedown="return false" id="YDR-Frame" class="frame">
     <div id="selection" class="selectiondiv"></div></div>
-  
+  </div>
   
   <div id='controls'>
     <table width=400>
       <tr>
+        <td>
+          <input type='button' id='btn_clear_selection' value='clear selection'>
+        </td>
+      </tr>
+      <tr>
+        <td colspan=3>
+          <hr>
+        </td>
+      </tr>
+      <tr>
+        <td colspan=3>
+          contrast
+        </td>
+      </tr>
+      <tr>
         <td colspan=3>
           <div id="slider-range"></div>
+        </td>
+      </tr>
+      <tr>
+        <td colspan=3>
+          <hr>
         </td>
       </tr>
       <tr>
@@ -45,11 +65,6 @@
         </td>
         <td>
           density
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <input type='button' id='btn_clear_selection' value='clear selection'>
         </td>
       </tr>
       <tr>
@@ -68,11 +83,28 @@
           <input type='text' id='text_stdev'>
         </td>
       </tr>
+      <tr>
+        <td>
+          label
+        </td>
+        <td>
+          <input type='text' id='text_label'>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <input type='button' id='btn_append_data' value='append data'>
+        </td>
+      </tr>
     </table>
   
   </div>
   
+<!--  <div id='notepad'>
+  <TEXTAREA NAME="Address" id="textarea_notepad" ROWS=42 COLS=100 >
+  </TEXTAREA>
   
+  </div>-->
   
   
   </body>
