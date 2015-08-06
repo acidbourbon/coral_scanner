@@ -1,0 +1,84 @@
+<html>
+
+  <head>
+  <title>My website</title>
+  <script src="./jquery.min.js"></script>
+  <script src="./jquery-ui.js"></script>
+  <script src="./jquery.mwiebusch.js"></script>
+  <script src="./selection.js"></script>
+  <script src="./selector.js"></script>
+  <script src="./statistics.js"></script>
+  
+  <link rel="stylesheet" type="text/css" href="jquery-ui.css">
+  <link rel="stylesheet" type="text/css" href="selection.css">
+  
+  <style>
+    
+  </style>
+  
+  </head>
+  <body>
+  <h1>A Heading</h1>
+  <p id='pout' >text, text text, text</p>
+  <p>Canvas:</p>
+  
+  <canvas id="myCanvas" width="3000" height="300">
+  Your browser does not support the HTML5 canvas tag.
+  </canvas>
+  
+  <div onmousedown="return false" id="YDR-Frame" class="frame">
+    <div id="selection" class="selectiondiv"></div></div>
+  
+  
+  <div id='controls'>
+    <table width=400>
+      <tr>
+        <td colspan=3>
+          <div id="slider-range"></div>
+        </td>
+      </tr>
+      <tr>
+        <td>
+        </td>
+        <td>
+          counts
+        </td>
+        <td>
+          density
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <input type='button' id='btn_clear_selection' value='clear selection'>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          selection average
+        </td>
+        <td>
+          <input type='text' id='text_avg'>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          selection stdev
+        </td>
+        <td>
+          <input type='text' id='text_stdev'>
+        </td>
+      </tr>
+    </table>
+  
+  </div>
+  
+  
+  
+  
+  </body>
+  
+</html>
+
+
+
+

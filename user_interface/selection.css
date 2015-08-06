@@ -1,0 +1,45 @@
+  .frame{
+/*     background:#cacaca; */
+    width:400px;
+    height:400px;
+    margin:0px;
+    padding:0px;
+    border: 1px solid black;
+/*     background-image: url(http://www.abload.de/img/gypsygardenbypixelsice4gah.png); */
+  }
+  
+  .selectiondiv{
+    border:2px solid white;
+    background:#1B94E0;
+    opacity:0.4;
+    filter:alpha(opacity=40);
+    margin:0px;
+    padding:0px;
+    display:none;
+  }
+  
+  
+#myCanvas,#YDR-Frame {
+
+/*    float:right; */
+/*    position:relative; */
+   position:fixed;
+   top: 100px;
+   left: 100px;
+   width: 3000px;
+   height: 300px;
+   border:1px solid #d3d3d3;
+
+}
+
+#controls {
+
+   position:fixed;
+   top: 500px;
+   left: 100px;
+   width: 800px;
+   height: 300px;
+   border:1px solid #d3d3d3;
+
+}
+
