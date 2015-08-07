@@ -21,42 +21,54 @@
   <h1>Coral Analysis</h1>
 <!--  <p id='pout' >text, text text, text</p>
   <p>Canvas:</p> -->
-  <div id='compound_canvas'>
-  <canvas id="myCanvas" width="3000" height="300">
-  Your browser does not support the HTML5 canvas tag.
-  </canvas>
+  <div id='compound_canvas' class='isBox' >
+    <canvas id="myCanvas" width="1000" height="200">
+    Your browser does not support the HTML5 canvas tag.
+    </canvas>
+    
+    <div onmousedown="return false" id="YDR-Frame" class="frame">
+      <div id="selection" class="selectiondiv"></div>
+    </div>
+    
+    <div id='canvas_controls'>
+      <div id="canvas_slider"></div>
+    </div> 
+    
+  </div> 
   
-  <div onmousedown="return false" id="YDR-Frame" class="frame">
-    <div id="selection" class="selectiondiv"></div></div>
-  </div>
-  
-  <div id='controls'>
+  <div id='controls' class='isBox' >
     <table width=400>
+
       <tr>
         <td>
           <input type='button' id='btn_clear_selection' value='clear selection'>
         </td>
       </tr>
+
       <tr>
         <td colspan=3>
           <hr>
         </td>
       </tr>
+
       <tr>
         <td colspan=3>
           contrast
         </td>
       </tr>
+
       <tr>
         <td colspan=3>
           <div id="slider-range"></div>
         </td>
       </tr>
+      
       <tr>
         <td colspan=3>
           <hr>
         </td>
       </tr>
+      
       <tr>
         <td>
         </td>
@@ -64,25 +76,34 @@
           counts
         </td>
         <td>
-          density
+          density (g/cm^2)
         </td>
       </tr>
+      
       <tr>
         <td>
           selection average
         </td>
         <td>
-          <input type='text' id='text_avg'>
+          <input type='text' id='text_avg' readonly>
+        </td>
+        <td>
+          <input type='text' id='text_avg_dnsty' readonly>
         </td>
       </tr>
+      
       <tr>
         <td>
           selection stdev
         </td>
         <td>
-          <input type='text' id='text_stdev'>
+          <input type='text' id='text_stdev' readonly>
+        </td>
+        <td>
+          <input type='text' id='text_stdev_dnsty' readonly>
         </td>
       </tr>
+      
       <tr>
         <td>
           label
@@ -91,20 +112,41 @@
           <input type='text' id='text_label'>
         </td>
       </tr>
+      
+      <tr>
+        <td>
+          thickness (mm)
+        </td>
+        <td>
+          <input type='text' id='text_thickness'>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          k0 (cm^2/g)
+        </td>
+        <td>
+          <input type='text' id='text_k0' value="0.396">
+        </td>
+      </tr>
+      
       <tr>
         <td>
           <input type='button' id='btn_append_data' value='append data'>
         </td>
+        <td>
+          <input type='button' id='btn_clear_data' value='clear data'>
+        </td>
       </tr>
+      
     </table>
-  
   </div>
   
-<!--  <div id='notepad'>
-  <TEXTAREA NAME="Address" id="textarea_notepad" ROWS=42 COLS=100 >
-  </TEXTAREA>
+  <div id='notepad' class='isBox' >
+  <TEXTAREA NAME="Address" id="textarea_notepad" ROWS=42 COLS=100 ></TEXTAREA>
   
-  </div>-->
+  </div>
   
   
   </body>

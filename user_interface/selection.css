@@ -20,24 +20,51 @@
   
   
 #myCanvas,#YDR-Frame {
-
-/*    float:right; */
-/*    position:relative; */
    position:absolute;
-   top: 100px;
-   left: 100px;
-   width: 3000px;
-   height: 300px;
-   border:1px solid #d3d3d3;
+   border:1px solid #FFFFFF;
+}
+
+
+#myCanvas,#YDR-Frame,#compound_canvas {
+   width: 1000px;
+   height: 200px;
+}
+#compound_canvas {
+  position:static;
+  height: 240px;
+}
+
+#canvas_controls {
+  position:relative;
+  
+  top: 210px;
+  width:980px;
+  left:10px;
 
 }
 
+
+.isBox {
+  
+   border:1px solid #d3d3d3;
+   margin:15px;
+   box-shadow: 6px 6px 5px #888888;
+  
+}
+
+/*#compound_canvas_container {
+  position:static;
+  height:320px;
+  width:800px;
+  overflow-x:scroll;
+}*/
+
 #controls {
 
-   position:absolute;
+   position:relative;
    padding:20px;
-   top: 500px;
-   left: 100px;
+/*    top: 400px; */
+/*    left: 60px; */
    width: 800px;
 /*    height: 300px; */
    border:1px solid #d3d3d3;
@@ -46,10 +73,10 @@
 
 #notepad {
 
-   position:fixed;
+   position:relative;
    padding:20px;
-   top: 500px;
-   left: 100px;
+/*    top: 500px; */
+/*    left: 100px; */
    width: 800px;
 /*    height: 300px; */
    border:1px solid #d3d3d3;
