@@ -26,20 +26,21 @@
 
 
 #myCanvas,#YDR-Frame,#compound_canvas {
-   width: 1000px;
+   width: 960px;
    height: 200px;
 }
 #compound_canvas {
   position:static;
   height: 240px;
+  padding: 20px;
 }
 
 #canvas_controls {
   position:relative;
   
   top: 210px;
-  width:980px;
-  left:10px;
+  width:960px;
+/*   left:20px; */
 
 }
 
