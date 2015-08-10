@@ -726,6 +726,7 @@ sub compile_report {
   my $dump = "./report/".$timestamp."_".$scan_name.".dump";
   
   my $csv = "./report/".$timestamp."_".$scan_name.".csv";
+  my $json = "./report/".$timestamp."_".$scan_name.".json";
   my $svg = "./report/".$timestamp."_".$scan_name.".svg";
   my $xls = $csv.".xls";
   
@@ -733,6 +734,10 @@ sub compile_report {
   open(DUMP,"> $dump") or die "cannot open $dump for writing \n";
   print DUMP Dumper($scan);
   close(DUMP);
+  
+  open(JSON,"> $json") or die "cannot open $json for writing \n";
+  print JSON encode_json($scan);
+  close(JSON);
   
   $self->scan_to_ascii(tofile => $csv);
   $self->scan_to_svg(svg_file => $svg);
@@ -747,7 +752,7 @@ sub compile_report {
   
   $self->{report}->email(
     text => $mailtext,
-    attachments => join(",",($csv,$svg,$xls,$storable,$dump))
+    attachments => join(",",($csv,$svg,$xls,$storable,$dump,$json))
   );
   
   return " ";

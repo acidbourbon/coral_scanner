@@ -59,27 +59,16 @@
   overflow-x:scroll;
 }*/
 
-#controls {
+#notepad,#controls,#file_selection {
 
    position:relative;
    padding:20px;
 /*    top: 400px; */
 /*    left: 60px; */
-   width: 800px;
+   width: 960px;
 /*    height: 300px; */
    border:1px solid #d3d3d3;
 
 }
 
-#notepad {
-
-   position:relative;
-   padding:20px;
-/*    top: 500px; */
-/*    left: 100px; */
-   width: 800px;
-/*    height: 300px; */
-   border:1px solid #d3d3d3;
-
-}
 

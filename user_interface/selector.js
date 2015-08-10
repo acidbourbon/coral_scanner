@@ -6,7 +6,7 @@ var contrast_max;
 
 var canvas_offset = 0;
 
-var selection_color = [180,180,255];
+var selection_color = [220,220,255,0,0,196];
 
 
 var my_subset = {};
@@ -14,12 +14,59 @@ var my_subset = {};
 var pixel_size = 10;
 
 $(document).ready(function(){
-  scan = get_scan_json();
-  $('#pout').html(scan.meta.scan_name);
+//   $('#pout').html(scan.meta.scan_name);
+  
+  $('#files').val("");
+  
+  $('#files').change(function(){
+    readBlob();
+  });
+  
+  $('#btn_last_scan').click(function(){
+    scan = get_scan_json();
+    init_widgets();
+  });
+  
+  $("#btn_clear_selection").click(function(){
+    clear_selection();
+  });
   
   
+  $("#btn_append_data").click(function(){
+    $("#textarea_notepad").val(
+      $("#textarea_notepad").val()+
+      $("#text_label").val()+"\t"+
+      $("#text_thickness").val()+"\t"+
+      $("#text_avg_dnsty").val()+"\t"+
+      $("#text_stdev_dnsty").val()+"\t"+
+      "\n"
+    );
+  });
+  $("#btn_clear_data").click(function(){
+    clear_notepad();
+  });
+  $('#text_thickness').change(function(){
+    calculate();
+  });
+  $('#text_k0').change(function(){
+    calculate();
+  });
+  
+ 
+  
+});
+
+
+
+function init_widgets(){
+   
   contrast_min = 0;
   contrast_max = scan.meta.unshadowed_counts/scan.meta.unshadowed_count_time*scan.meta.time_per_pixel;
+  
+  
+  for( x in scan.meta){
+    $('#'+x).html(scan.meta[x]);
+  }
   
 //   draw_scan();
 //   alert(false_color(30000,255,100,0));
@@ -44,24 +91,6 @@ $(document).ready(function(){
 //   $( "#amount" ).html( $( "#slider-range" ).slider( "values", 0 ) +
 //     " - " + $( "#slider-range" ).slider( "values", 1 ) );
 
-  $("#btn_clear_selection").click(function(){
-    clear_selection();
-  });
-  
-  
-  $("#btn_append_data").click(function(){
-    $("#textarea_notepad").val(
-      $("#textarea_notepad").val()+
-      $("#text_label").val()+"\t"+
-      $("#text_thickness").val()+"\t"+
-      $("#text_avg_dnsty").val()+"\t"+
-      $("#text_stdev_dnsty").val()+"\t"+
-      "\n"
-    );
-  });
-  $("#btn_clear_data").click(function(){
-    clear_notepad();
-  });
   
   
   $( "#canvas_slider" ).slider({
@@ -74,17 +103,12 @@ $(document).ready(function(){
     }
   });
   
-  $('#text_thickness').change(function(){
-    calculate();
-  });
-  $('#text_k0').change(function(){
-    calculate();
-  });
   
   clear_selection();
   clear_notepad();
   
-});
+}
+
 
 function clear_selection(){
   my_subset = {};
@@ -178,31 +202,62 @@ function draw_scan() {
   
   ctx.clearRect(0, 0, c.width, c.height);
   
+  
+  
   for (var i = 0; i < scan.meta.rows; i++) {
     for (var j = 0; j < scan.meta.cols; j++) {
       var value = scan.data[i][j];
       if (my_subset[i.toString()+"-"+j.toString()] == 1) {
-        ctx.fillStyle = false_color(value,selection_color[0],selection_color[1],selection_color[2]);
+        ctx.fillStyle = false_color(value,
+                                    selection_color[0],selection_color[1],selection_color[2],
+                                    selection_color[3],selection_color[4],selection_color[5]
+                                   );
       } else {
-        ctx.fillStyle = false_color(value,255,255,255);
+        ctx.fillStyle = false_color(value,255,255,255,0,0,0);
       }
       ctx.fillRect(i*pixel_size - canvas_offset, j*pixel_size, pixel_size, pixel_size);
       
     }
       //Do something
   }
+  var ruler_y_offset = 180;
+  ctx.fillStyle = "#000000";
+  for (var i = 0; i < 300; i+=1) {
+    var x = i*10-canvas_offset;
+    
+    if (i % 5 == 0) {
+    
+      ctx.beginPath();
+      ctx.moveTo(x,ruler_y_offset);
+      ctx.lineTo(x,ruler_y_offset + 20);
+      ctx.stroke();
+      ctx.font = "16px Arial";
+      if (i == 0) {
+        ctx.fillText("0 mm",x+5,ruler_y_offset+20);
+      } else {
+        ctx.fillText(i,x+5,ruler_y_offset+20);
+      }
+    } else {
+      ctx.beginPath();
+      ctx.moveTo(x,ruler_y_offset);
+      ctx.lineTo(x,ruler_y_offset + 4);
+      ctx.stroke();
+    }
+  }
   
   
   
 }
 
-function false_color(value,r,g,b) {
+function false_color(value,r,g,b,r2,g2,b2) {
   var ratio = (value - contrast_min)/(contrast_max-contrast_min);
   ratio = Math.max(ratio,0);
   ratio = Math.min(ratio,1);
-  var ro = Math.round(ratio*r).toString();
-  var go = Math.round(ratio*g).toString();
-  var bo = Math.round(ratio*b).toString();
+  
+  
+  var ro = Math.round(ratio*(r-r2)+r2).toString();
+  var go = Math.round(ratio*(g-g2)+g2).toString();
+  var bo = Math.round(ratio*(b-b2)+b2).toString();
   return "rgb("+ro+","+go+","+bo+")";
 }
 
@@ -226,6 +281,38 @@ function get_scan_json(){
 }
 
 
+
+function readBlob(opt_startByte, opt_stopByte) {
+
+  var files = document.getElementById('files').files;
+  if (!files.length) {
+    alert('Please select a file!');
+    return;
+  }
+
+  var file = files[0];
+  var start = parseInt(opt_startByte) || 0;
+  var stop = parseInt(opt_stopByte) || file.size - 1;
+
+  var reader = new FileReader();
+
+  // If we use onloadend, we need to check the readyState.
+  reader.onloadend = function(evt) {
+    if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+//       document.getElementById('byte_content').textContent = evt.target.result;
+      scan = JSON.parse(evt.target.result);
+      init_widgets();
+//       alert("scan loaded");
+//       draw_scan();
+//       document.getElementById('byte_range').textContent = 
+//           ['Read bytes: ', start + 1, ' - ', stop + 1,
+//             ' of ', file.size, ' byte file'].join('');
+    }
+  };
+
+  var blob = file.slice(start, stop + 1);
+  reader.readAsBinaryString(blob);
+}
 
 
 
