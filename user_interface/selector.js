@@ -59,7 +59,10 @@ $(document).ready(function(){
 
 
 function init_widgets(){
-   
+  
+  
+  pixel_size = scan.meta.step_size*10;
+  
   contrast_min = 0;
   contrast_max = scan.meta.unshadowed_counts/scan.meta.unshadowed_count_time*scan.meta.time_per_pixel;
   

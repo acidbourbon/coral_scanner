@@ -36,7 +36,9 @@ sub new {
     reset_counter     => 24,
     dead_time         => 25,
     acquisition_time  => 26,
-    input_polarity    => 27
+    input_polarity    => 27,
+    spikes_per_evt_lower => 28,
+    spikes_per_evt_upper => 29,
   };
   
   $self->{constants} = {
@@ -58,7 +60,9 @@ sub new {
     spectrum_start => -2000,
     spectrum_stop  => 0,
     spectrum_bins  => 24,
-    spectrum_delay  => 1
+    spectrum_delay  => 1,
+    spikes_per_evt_lower => 4,
+    spikes_per_evt_upper => 15,
   };
   
   $self->{settings_desc} = { # hard default settings
@@ -74,6 +78,8 @@ sub new {
     spectrum_stop  => "stop/end threshold of spectral scan",
     spectrum_bins  => "number of bins for spectral scan",
     spectrum_delay  => "count integration time for each bin of spectral scan",
+    spikes_per_evt_lower => "lower boundary of spikes per event that you accept as a count",
+    spikes_per_evt_upper => "upper boundary of spikes per event that you accept as a count",
   };
 
   $self->{has_run} = {}; # remember which subs already have run
@@ -120,6 +126,8 @@ sub apply_device_settings {
   $self->signal_thresh(value => $self->{settings}->{signal_thresh});
   $self->veto_thresh(value => $self->{settings}->{veto_thresh});
   $self->dead_time(value => $self->{settings}->{dead_time});
+  $self->write_register(regName => "spikes_per_evt_lower", value => $self->{settings}->{spikes_per_evt_lower});
+  $self->write_register(regName => "spikes_per_evt_upper", value => $self->{settings}->{spikes_per_evt_upper});
   return;
 }
 
