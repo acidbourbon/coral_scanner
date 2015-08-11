@@ -86,7 +86,7 @@ $VERSION = "1.7 (Demonic/Linux)";
 	 "bin" => "application/octet-stream");
 
 # comment in to enable logs
-$logfile = "./access.log";
+# $logfile = "./access.log";
 $path = "./htdocs";
 $sockaddr = 'S n a4 x8';
 
@@ -102,7 +102,7 @@ die("$0 [host] [port] required. got >$server_host< >$server_port<") unless ($ser
 	 );
 %restrictions = (
 	 "/nw" => "^10\.##^Mozilla#MSIE",
-	 "/status" => "####voyeur:daNrZR3TcSwD2",
+	 "/*" => "####coral:74Kib95zMHWC.",
 	 "/" => "###(NPBot|WebZIP|HTTrack|eCatch|Offline Explorer|UdmSearch|WebCopier|internetseer|MSIECrawler|SuperBot|LinkWalker|Tutorial Crawler|WebReaper)",
 	);
 		# See documentation for interpreting this string.
