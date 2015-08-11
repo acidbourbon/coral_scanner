@@ -148,6 +148,8 @@ sub main_html {
   ><input type='button' value='svg image'></a>";
   print "<a href='coral_scanner.pl?sub=last_scan' target='_blank' id='button_dump'
   ><input type='button' value='scan dump'></a>";
+  print "<a href='analysis.html' target='_blank' id='button_analysis_gui'
+  ><input type='button' value='analysis gui'></a>";
   print br;
   print hr;
   print br;
