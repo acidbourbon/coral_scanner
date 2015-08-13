@@ -52,6 +52,10 @@ $(document).ready(function(){
     calculate();
   });
   
+  $('#checkbox_mirror_y').change(function(){
+    draw_scan();
+  });
+  
  
   
 });
@@ -171,6 +175,12 @@ function selection_finished(x1,x2,y1,y2) {
   py2 = Math.floor(y2/pixel_size);
 //   alert(px1.toString()+" "+px2.toString()+" "+py1.toString()+" "+py2.toString()+" ");
   
+  var mirror_y = $('#checkbox_mirror_y').prop('checked');
+  if(!(mirror_y)) {
+    py1 = scan.meta.cols - py1 -1;
+    py2 = scan.meta.cols - py2 -1;
+  }
+  
   var temp;
   if (px1 > px2) {
     temp = px1;
@@ -193,6 +203,7 @@ function selection_finished(x1,x2,y1,y2) {
       }
     }
   }
+  
   draw_scan();
   calculate();
 }
@@ -205,7 +216,7 @@ function draw_scan() {
   
   ctx.clearRect(0, 0, c.width, c.height);
   
-  
+  var mirror_y = $('#checkbox_mirror_y').prop('checked');
   
   for (var i = 0; i < scan.meta.rows; i++) {
     for (var j = 0; j < scan.meta.cols; j++) {
@@ -218,7 +229,12 @@ function draw_scan() {
       } else {
         ctx.fillStyle = false_color(value,255,255,255,0,0,0);
       }
-      ctx.fillRect(i*pixel_size - canvas_offset, j*pixel_size, pixel_size, pixel_size);
+      
+      if (mirror_y) {
+        ctx.fillRect(i*pixel_size - canvas_offset,j*pixel_size, pixel_size, pixel_size);
+      } else {
+        ctx.fillRect(i*pixel_size - canvas_offset,(scan.meta.cols-j-1)*pixel_size, pixel_size, pixel_size);
+      }
       
     }
       //Do something
