@@ -77,9 +77,14 @@
   </div> 
   
   <div id='controls' class='isBox' >
-    <table width=400>
+    <table>
 
       <tr>
+        <td>
+          cells selected:
+        </td>
+        <td id='td_cells_selected'>
+        </td>
         <td>
           <input type='button' id='btn_clear_selection' value='clear selection'>
         </td>
@@ -115,9 +120,9 @@
         <td>
           counts
         </td>
-        <td>
-          density (g/cm^2)
-        </td>
+<!--        <td>
+          density (g/cm^3)
+        </td> -->
       </tr>
       
       <tr>
@@ -126,9 +131,6 @@
         </td>
         <td>
           <input type='text' id='text_avg' readonly>
-        </td>
-        <td>
-          <input type='text' id='text_avg_dnsty' readonly>
         </td>
       </tr>
       
@@ -140,8 +142,22 @@
           <input type='text' id='text_stdev' readonly>
         </td>
         <td>
-          <input type='text' id='text_stdev_dnsty' readonly>
+          <input type='checkbox' id='checkbox_ignore_sel_stdev'>
+          <label for='checkbox_ignore_sel_stdev'>treat as error</label>
         </td>
+      </tr>
+      
+      <tr>
+        <td>
+          poisson err
+        </td>
+        <td>
+          <input type='text' id='text_poisson_err' readonly>
+        </td>
+      </tr>
+      
+      <tr>
+        <td colspan=3><hr></td>
       </tr>
       
       <tr>
@@ -164,10 +180,76 @@
       
       <tr>
         <td>
+          thickness err (mm)
+        </td>
+        <td>
+          <input type='text' id='text_thickness_err'>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          I0 (Hz)
+        </td>
+        <td>
+          <input type='text' id='text_i0'>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          I0 err (Hz)
+        </td>
+        <td>
+          <input type='text' id='text_i0_err'>
+        </td>
+      </tr>      
+      
+      
+      <tr>
+        <td>
           k0 (cm^2/g)
         </td>
         <td>
           <input type='text' id='text_k0' value="0.396">
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          k0 err (cm^2/g)
+        </td>
+        <td>
+          <input type='text' id='text_k0_err' value="0">
+        </td>
+      </tr>
+      
+      <tr>
+        <td colspan=3>
+          <hr>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          average density (g/cm^3)
+        </td>
+        <td>
+          density err (g/cm^3)
+        </td>
+      </tr>
+        <td>
+          <input type='text' id='text_avg_dnsty' readonly>
+        </td>
+        <td>
+          <input type='text' id='text_stdev_dnsty' readonly>
+        </td>
+      </tr>
+      
+      
+      <tr>
+        <td colspan=3>
+          <hr>
         </td>
       </tr>
       
