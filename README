@@ -74,7 +74,9 @@ cd ./user_interface
 # it might be wise to keep this process running, maybe with the help of "screen"
 
 
-# now direct your webbrowser to http://localhost:<your port> and enjoy the colorful user interface I made
+# now direct your webbrowser to http://localhost:<your port> and enjoy the colorful user interface I made.
+#     user: coral
+# password: belize2
 
 
 
