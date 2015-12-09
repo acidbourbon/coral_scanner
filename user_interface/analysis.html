@@ -1,0 +1,280 @@
+<html>
+
+  <head>
+  <title>Coral Analysis</title>
+  <script src="./jquery.min.js"></script>
+  <script src="./jquery-ui.js"></script>
+  <script src="./jquery.mwiebusch.js"></script>
+  <script src="./selection.js"></script>
+  <script src="./analysis.js"></script>
+  <script src="./statistics.js"></script>
+  
+  <link rel="stylesheet" type="text/css" href="styles.css">
+  <link rel="stylesheet" type="text/css" href="jquery-ui.css">
+  <link rel="stylesheet" type="text/css" href="selection.css">
+  
+  <style>
+    
+  </style>
+  
+  </head>
+  <body>
+  <h2>Coral Analysis</h2>
+<!--  <p id='pout' >text, text text, text</p>
+  <p>Canvas:</p> -->
+  <div id='file_selection' class='isBox' >
+    <table><tr>
+      <td>
+        <input type="button" id="btn_last_scan" value="load last scan" />
+      </td>
+      <td>
+        or
+      </td>
+      <td>
+        <input type="file" id="files" name="file" />
+      </td>
+    </tr></table>
+    <table>
+      <tr>
+        <td>Scan name:</td>
+        <td id='scan_name'></td>
+      </tr>
+      <tr>
+        <td>Scan description:</td>
+        <td id='scan_desc'></td>
+      </tr>
+      <tr>
+        <td>Scan start:</td>
+        <td id='start_timestamp'></td>
+      </tr>
+      <tr>
+        <td>Scan stop:</td>
+        <td id='stop_timestamp'></td>
+      </tr>
+      <tr>
+        <td>Scan duration:</td>
+        <td id='duration'></td>
+      </tr>
+    </table>
+  </div>
+  <div id='compound_canvas' class='isBox' >
+    <canvas id="myCanvas" width="960" height="200">
+    Your browser does not support the HTML5 canvas tag.
+    </canvas>
+    
+    <div onmousedown="return false" id="YDR-Frame" class="frame">
+      <div id="selection" class="selectiondiv"></div>
+    </div>
+    
+    <div id='canvas_controls'>
+      <div id="canvas_slider"></div>
+      <div>
+        <input id='checkbox_mirror_y' type='checkbox'/>
+        <label for='checkbox_mirror_y'>mirror y</label>
+      </div>
+    </div> 
+    
+  </div> 
+  
+  <div id='controls' class='isBox' >
+    <table>
+
+      <tr>
+        <td>
+          cells selected:
+        </td>
+        <td id='td_cells_selected'>
+        </td>
+        <td>
+          <input type='button' id='btn_clear_selection' value='clear selection'>
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan=3>
+          <hr>
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan=3>
+          contrast
+        </td>
+      </tr>
+
+      <tr>
+        <td colspan=3>
+          <div id="slider-range"></div>
+        </td>
+      </tr>
+      
+      <tr>
+        <td colspan=3>
+          <hr>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+        </td>
+        <td>
+          counts
+        </td>
+<!--        <td>
+          density (g/cm^3)
+        </td> -->
+      </tr>
+      
+      <tr>
+        <td>
+          selection average
+        </td>
+        <td>
+          <input type='text' id='text_avg' readonly>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          selection stdev
+        </td>
+        <td>
+          <input type='text' id='text_stdev' readonly>
+        </td>
+        <td>
+          <input type='checkbox' id='checkbox_ignore_sel_stdev'>
+          <label for='checkbox_ignore_sel_stdev'>treat as error</label>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          poisson err
+        </td>
+        <td>
+          <input type='text' id='text_poisson_err' readonly>
+        </td>
+      </tr>
+      
+      <tr>
+        <td colspan=3><hr></td>
+      </tr>
+      
+      <tr>
+        <td>
+          label
+        </td>
+        <td>
+          <input type='text' id='text_label'>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          thickness (mm)
+        </td>
+        <td>
+          <input type='text' id='text_thickness'>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          thickness err (mm)
+        </td>
+        <td>
+          <input type='text' id='text_thickness_err'>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          I0 (Hz)
+        </td>
+        <td>
+          <input type='text' id='text_i0'>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          I0 err (Hz)
+        </td>
+        <td>
+          <input type='text' id='text_i0_err'>
+        </td>
+      </tr>      
+      
+      
+      <tr>
+        <td>
+          k0 (cm^2/g)
+        </td>
+        <td>
+          <input type='text' id='text_k0' value="0.396">
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          k0 err (cm^2/g)
+        </td>
+        <td>
+          <input type='text' id='text_k0_err' value="0">
+        </td>
+      </tr>
+      
+      <tr>
+        <td colspan=3>
+          <hr>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          average density (g/cm^3)
+        </td>
+        <td>
+          density err (g/cm^3)
+        </td>
+      </tr>
+        <td>
+          <input type='text' id='text_avg_dnsty' readonly>
+        </td>
+        <td>
+          <input type='text' id='text_stdev_dnsty' readonly>
+        </td>
+      </tr>
+      
+      
+      <tr>
+        <td colspan=3>
+          <hr>
+        </td>
+      </tr>
+      
+      <tr>
+        <td>
+          <input type='button' id='btn_append_data' value='append data'>
+        </td>
+        <td>
+          <input type='button' id='btn_clear_data' value='clear data'>
+        </td>
+      </tr>
+      
+    </table>
+  </div>
+  
+  <div id='notepad' class='isBox' >
+  <TEXTAREA NAME="Address" id="textarea_notepad" ROWS=42 COLS=100 ></TEXTAREA>
+  
+  </div>
+  
+  
+  </body>
+  
+</html>
+
+
+
+

@@ -1,0 +1,72 @@
+
+   
+.plotArea {
+/*    float:left; */
+   position:absolute;
+/*    position:fixed; */
+/*    width:320px; */
+   left:0px;
+   top:50px;
+   min-width: 640px;
+   min-height: 480px;
+   padding:10px;
+   margin-top:30px;
+   margin-left:30px;
+
+   }
+   
+
+   
+div.padded {
+     padding:10px;
+  
+}
+
+div.settings_form{
+  padding:10px;
+  padding-right:250px;
+}
+
+div.header {
+    font-size:13pt;
+    position:absolute;
+    top:-22px;
+    color:#444;
+    z-index:-2;
+
+   }
+
+   
+.quasibutton {
+  background:#dde;
+  cursor:pointer;
+/*   text-align:center; */
+  color:#228;
+/*   width:25px; */
+/*   border:2px solid #eef; */
+  transition:background .4s;
+}
+  
+.quasibutton:hover{
+    background:#eed;
+}
+
+.hidden_by_default {
+  display:none;
+}
+
+
+.quickEditArea {
+   float:left;
+   position:relative;
+   width:320px;
+   padding:10px;
+   margin:50px 10px 0 30px;
+   }
+   
+#main_body {
+  float:left;
+  position:relative;
+  width:800px;
+
+}
