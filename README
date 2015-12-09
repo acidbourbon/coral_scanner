@@ -1,0 +1,93 @@
+##################################################
+##      coral scanner software repository       ##
+##################################################
+
+
+The coral scanner software consists of three parts:
+
+1. The user interface (subfolder "user_interface")
+2. The microcontroller firmware to control the stepper motors of the table
+   (subfolder "firmware")
+3. The VHDL code for the PADIWA-FPGA board which handles the PMT signal detection
+   and information processing.
+   
+   
+
+##################################################
+##      compiling the microcontroller code      ##
+##################################################
+
+Prerequisites:
+  gcc-avr
+  dfu-programmer
+
+
+cd ./firmware
+make clean
+make
+#connect atmega32u2 in bootloader mode (stock bootloader!)
+make program
+#you might have to run the last step as root, if you don't have suitable udev policies for your atmega32u2
+
+
+##################################################
+##             compiling VDHL code              ##
+##################################################
+
+
+cd ./padiwa_vhdl
+git clone git@jspc29:/trb3
+git clone git@jspc29:/trbnet
+
+cd ./padiwa/coral_counter
+. /d/jspc29/lattice/34_settings.sh
+export PATH=$PATH:/home/hadaq/bin/
+
+./compile_padiwa_frankfurt.pl
+
+# now use diamond programmer to flash the resulting bit file to your PADIWA FPGA (in "workdir")
+# or use the last working bit file in folder "bitfiles"
+
+
+##################################################
+##       starting the web user interface        ##
+##################################################
+
+# make sure you have the following perl modules installed, if not install them with CPAN
+CGI
+Data::Dumper
+Device::SerialPort
+Digest::SHA::PurePerl
+File::Basename
+Getopt::Long
+JSON
+MIME::Base64
+Net::SMTP::SSL
+Proc::Daemon
+Storable
+SVG
+Time::HiRes
+
+# then start the web server on port <your port>
+cd ./user_interface
+./httpi localhost <your port>
+# it might be wise to keep this process running, maybe with the help of "screen"
+
+
+# now direct your webbrowser to http://localhost:<your port> and enjoy the colorful user interface I made
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
