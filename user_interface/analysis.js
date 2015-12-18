@@ -81,8 +81,10 @@ function init_widgets(){
   
   $('#text_i0').val(I0.toFixed(3));
   $('#text_i0_err').val(I0_err.toFixed(3));
-  $('#text_k0').val(0.396);
-  $('#text_k0_err').val(0);
+//  $('#text_k0').val(0.396);// the old value for calibration -> literature value
+  $('#text_k0').val(0.362); // the new value for calibration
+//  $('#text_k0_err').val(0);// the old value
+  $('#text_k0_err').val(0.013); // the new value
   $('#text_label').val("[label]");
   $('#text_thickness').val(5);
   $('#text_thickness_err').val(0);
