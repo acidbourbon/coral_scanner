@@ -304,7 +304,7 @@ sub scan_sample {
   $self->{current_scan}->{meta}->{scan_name} = $options{scan_name} if defined($options{scan_name});
   $self->{current_scan}->{meta}->{scan_desc} = $options{scan_desc} if defined($options{scan_desc});
   $self->{current_scan}->{data} = [];
-  $self->clear_log();
+  # $self->clear_log();
   print ">>> initializing new scan\n\n";
   print "  scan name:        ".$options{scan_name}."\n";
   print "  scan description: ".$options{scan_desc}."\n";
