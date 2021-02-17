@@ -6,6 +6,7 @@
 
 use strict;
 use warnings;
+use lib '.';
 use CGI_dispatch;
 
 use table_control;

@@ -162,7 +162,7 @@ $(document).ready(function(){
   plot_choices();
   plot_spectrum();
   
-  get_scan_meta();
+  //get_scan_meta();
 //   get_scan_svg();
   update_ETA();
   
@@ -402,20 +402,20 @@ function get_pattern_svg(){
      });
 }
 
-function get_scan_meta(){
-  $.ajax({
-        url:       "coral_scanner.pl",
-        cache:     false,
-        async:     true,
-        dataType:  "json",
-        data:      {
-          sub        : "scan_meta"
-        },
-        success:   function(answer) {
-          scan_meta = answer;
-        }
-     });
-}
+//function get_scan_meta(){
+//  $.ajax({
+//        url:       "coral_scanner.pl",
+//        cache:     false,
+//        async:     true,
+//        dataType:  "json",
+//        data:      {
+//          sub        : "scan_meta"
+//        },
+//        success:   function(answer) {
+//          scan_meta = answer;
+//        }
+//     });
+//}
 
 
 // function get_scan_status_report(){

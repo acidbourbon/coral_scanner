@@ -8,6 +8,8 @@ use strict;
 use warnings;
 use CGI_dispatch;
 
+use lib ".";
+
 use pmt_ro;
 my $self = pmt_ro->new();
 

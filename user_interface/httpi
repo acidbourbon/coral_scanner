@@ -2,6 +2,9 @@
 use POSIX qw(SIGALRM SIGTERM sigaction);
 
 use lib "./include";
+
+use lib ".";
+
 use Digest::SHA::PurePerl qw(sha1_base64);
 use File::Basename;
 
@@ -426,6 +429,7 @@ EOF
                                 push(@INC,$scriptdir);
                                 my $scriptname = basename($raddress);
 				require $scriptname;
+				1;
 				exit;
 			}
 		}
